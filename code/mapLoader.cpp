@@ -6,12 +6,18 @@
 #include <mutex>
 #include <map>
 
+#pragma region forwards
+void putMapInVec(sf::Texture& m_tileset, std::vector<std::vector<Map>>& maps);
+void putMapInVec(sf::Texture& m_tileset, std::vector<std::vector<Map>>& newMaps, std::vector<std::vector<Map>>& oldMaps, const sf::Vector2i offset);
+#pragma endregion
+
 
 baseEntity grass;
-const int widthHeightInTiles = 53;
+const int widthHeightInTiles = 25;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
-int fullWorldDimensions = 24;
+const int fullWorldDimensions = 4;
+int additionalDimensions = 0;
 
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const Map& map)
 {
@@ -25,73 +31,155 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const 
 	}
 }
 
-Map mapsAry[200][200];
+//Map mapsAry[fullWorldDimensions][fullWorldDimensions];
 
+std::vector<std::vector<Map>> mapsAry;
 std::map<Map, int> mapX;
+sf::Texture m_tileset;
 
-std::vector<std::vector<Map>> maps;
-std::vector<Map> mapToDraw;
-
-void drawnNearestMaps(sf::RenderWindow& window, const livingEntity& player)
+int positiveDirectionOffsetSubtractor = 0;
+void calcLoadNewMaps(int additionalMapDimensions, livingEntity& player, sf::View& camera, int direction, sf::RenderWindow& window)
 {
-	int x = player.sprite.getPosition().x;
-	int y = player.sprite.getPosition().y;
+	additionalDimensions += additionalMapDimensions;
+	int newDimensions = fullWorldDimensions + additionalDimensions;
 
-	int indexx = (y / (mapSize));
-	int indexy = (x / (mapSize));
+	float offsetRowf = (newDimensions - fullWorldDimensions) / 2.0f;
+	float offsetColf = (newDimensions - fullWorldDimensions) / 2.0f;
 
-	window.draw(mapsAry[indexy][indexx].tiles);
-	window.draw(mapsAry[indexy - 1][indexx].tiles);
-	window.draw(mapsAry[indexy][indexx - 1].tiles);
-	window.draw(mapsAry[indexy + 1][indexx].tiles);
-	window.draw(mapsAry[indexy][indexx + 1].tiles);
+	int offsetRow = round(offsetRowf);
+	int offsetCol = round(offsetColf);
 
-	window.draw(mapsAry[indexy - 1][indexx + 1].tiles);
-	window.draw(mapsAry[indexy + 1][indexx + 1].tiles);
-	window.draw(mapsAry[indexy + 1][indexx - 1].tiles);
-	window.draw(mapsAry[indexy - 1][indexx - 1].tiles);
+	std::vector<std::vector<Map>> newMapsAry;
 
-	drawFloraFauna(window, player, mapsAry[indexy][indexx]);
-	drawFloraFauna(window, player, mapsAry[indexy - 1][indexx]);
-	drawFloraFauna(window, player, mapsAry[indexy][indexx-1]);
-	drawFloraFauna(window, player, mapsAry[indexy+1][indexx]);
-	drawFloraFauna(window, player, mapsAry[indexy][indexx+1]);
-
-	drawFloraFauna(window, player, mapsAry[indexy-1][indexx+1]);
-	drawFloraFauna(window, player, mapsAry[indexy + 1][indexx+1]);
-	drawFloraFauna(window, player, mapsAry[indexy+1][indexx - 1]);
-	drawFloraFauna(window, player, mapsAry[indexy + 1][indexx]);
-	drawFloraFauna(window, player, mapsAry[indexy-1][indexx - 1]);
+	putMapInVec(m_tileset, newMapsAry, mapsAry, sf::Vector2i(offsetRow, offsetCol));
+	mapsAry.clear();
+	mapsAry = newMapsAry;
+	if (direction < 0)
+	{
+		player.setPos(player.getPos() + sf::Vector2f(offsetRow * mapSize, offsetCol * mapSize)); // need to check proper direction before offsetting
+	}
+	else if (direction > 0)
+	{
+		player.setPos(player.getPos() - sf::Vector2f(offsetRow * mapSize, offsetCol * mapSize)); // need to check proper direction before offsetting
+	}
+	camera.setCenter(player.getPos());
+	window.setView(camera);
 }
+
+//spawn map to the left or up if player is in the left or up 35% of the map
+float spawnMapBoundsLower = 0.35f;
+
+//spawn map to the right or down if player is in the right or down 65% of the map
+float spawnMapBoundsUpper = 1 - spawnMapBoundsLower; 
+
+sf::Vector2i getMapToLoad(const livingEntity& player)
+{
+	float x = player.sprite.getPosition().x;
+	float y = player.sprite.getPosition().y;
+
+	float tripBoundsy = (y / (mapSize));
+	float tripBoundsx = (x / (mapSize));
+
+	int indexy = (y / (mapSize));
+	int indexx = (x / (mapSize));
+
+	int offsetX = 0;
+	int offsetY = 0;
+
+	if (tripBoundsx - (float)indexx >= spawnMapBoundsUpper)
+	{
+		offsetX += 1;
+	}
+	else if (tripBoundsx - (float)indexx <= spawnMapBoundsLower)
+	{
+		offsetX -= 1;
+	}
+	if (tripBoundsy - (float)indexy >= spawnMapBoundsUpper)
+	{
+		offsetY += 1;
+	}
+	else if (tripBoundsy - (float)indexy <= spawnMapBoundsLower)
+	{
+		offsetY -= 1;
+	}
+	return sf::Vector2i(offsetX, offsetY);
+}
+
+void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera)
+{
+	float x = player.sprite.getPosition().x;
+	float y = player.sprite.getPosition().y;
+
+	sf::Vector2i off = getMapToLoad(player);
+
+	int offsetX = off.x;
+	int offsetY = off.y;
+
+	int indexx = (x / (mapSize));
+	int indexy = (y / (mapSize));
+
+	//std::cout << "current x map " << indexx << " ,  current y map " << indexy << std::endl;
+	int indexOffsetX = (indexx + offsetX);
+	int indexOffsetY = (indexy + offsetY);
+
+	int mapsSize = mapsAry.size() - 1;
+	if ( (indexOffsetX >= mapsSize) || (indexOffsetY >= mapsSize))
+	{
+		calcLoadNewMaps(4, player, camera, 1, window);
+		return;
+	}
+	else if ( (indexOffsetY < 0) || (indexOffsetX < 0))
+	{
+		calcLoadNewMaps(4, player, camera, -1, window);
+		return;
+	}
+	
+	window.draw(mapsAry[indexx][indexy].tiles);
+	
+	//only draw if we need to
+	if ((offsetX != 0) && (offsetY != 0))
+	{
+		window.draw(mapsAry[indexx + offsetX][indexy + offsetY].tiles);
+		window.draw(mapsAry[indexx][indexy + offsetY].tiles);
+		window.draw(mapsAry[indexx + offsetX][indexy].tiles);
+	}
+	else if (offsetX != 0)
+	{
+		window.draw(mapsAry[indexx + offsetX][indexy + offsetY].tiles);
+		window.draw(mapsAry[indexx][indexy + offsetY].tiles);
+	}
+	else if (offsetY != 0)
+	{
+		window.draw(mapsAry[indexx + offsetX][indexy + offsetY].tiles);
+		window.draw(mapsAry[indexx + offsetX][indexy].tiles);
+	}
+	
+
+	drawFloraFauna(window, player, mapsAry[indexx][indexy]);
+
+	if ((offsetX != 0) && (offsetY != 0))
+	{
+		drawFloraFauna(window, player, mapsAry[indexx + offsetX][indexy + offsetY]);
+		drawFloraFauna(window, player, mapsAry[indexx][indexy + offsetY]);
+		drawFloraFauna(window, player, mapsAry[indexx + offsetX][indexy]);
+	}
+	else if (offsetX != 0)
+	{
+		drawFloraFauna(window, player, mapsAry[indexx + offsetX][indexy + offsetY]);
+		drawFloraFauna(window, player, mapsAry[indexx][indexy + offsetY]);
+	}
+	else if (offsetY != 0)
+	{
+		drawFloraFauna(window, player, mapsAry[indexx + offsetX][indexy + offsetY]);
+		drawFloraFauna(window, player, mapsAry[indexx + offsetX][indexy]);
+	}
+	
+}
+
+
 
 std::mutex caclMapsMutex;
-int extraMaps = 0;
-void calcNearestMaps(const livingEntity& player)
-{
-	/*
-	caclMapsMutex.lock();
-	int x = player.sprite.getPosition().x;
-	int y = player.sprite.getPosition().y;
-	if (x == 0) { x = 1; } if (y == 0) { y = 1; }
 
-	int indexx = (y / (mapSize + extraMaps));
-	int indexy = (x / (mapSize + extraMaps));
-
-	mapToDraw.clear();
-
-	mapToDraw.push_back(maps[indexy][indexx]); 
-	mapToDraw.push_back(maps[indexy-1][indexx]);
-	mapToDraw.push_back(maps[indexy][indexx-1]);
-	mapToDraw.push_back(maps[indexy+1][indexx]);
-	mapToDraw.push_back(maps[indexy][indexx+1]);
-
-	mapToDraw.push_back(maps[indexy-1][indexx+1]);
-	mapToDraw.push_back(maps[indexy+1][indexx+1]);
-	mapToDraw.push_back(maps[indexy+1][indexx-1]);
-	mapToDraw.push_back(maps[indexy-1][indexx-1]);
-	caclMapsMutex.unlock();
-	*/
-}
 
 int grassCount = 20;
 void randGrass(Map& map, sf::Vector2f& pos)
@@ -112,26 +200,56 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 
 
 
-void putMapInVec(const int& ix, sf::Texture& m_tileset)
+void putMapInVec(sf::Texture& m_tileset, std::vector<std::vector<Map>>& maps)
 {
-	int mapIx = mapSize * ix;
-	//std::vector<Map> column;
-	//column.reserve(fullWorldDimensions + extraMaps);
-	sf::Vector2f offset;
-	int fullExtra = fullWorldDimensions + extraMaps;
-	for (int j = 0; j < fullExtra; j++)
-	{		
-		offset.x = (mapIx);
-		offset.y = (mapSize * j);
-		Map map(m_tileset,offset);
-		spawnFloraAndFauna(map, offset);
+	int worldDimensionsTotal = fullWorldDimensions + additionalDimensions;
+	for (int i = 0; i < worldDimensionsTotal; i++)
+	{
+		int mapIx = mapSize * i;
+		std::vector<Map> column;
+		column.reserve(worldDimensionsTotal);
+		sf::Vector2f offset;
+		for (int j = 0; j < worldDimensionsTotal; j++)
+		{		
+			offset.x = (mapIx);
+			offset.y = (mapSize * j);
+			Map map(m_tileset,offset);
+			spawnFloraAndFauna(map, offset);
 
-		mapsAry[ix][j] = std::move(map);
-		//column.push_back(std::move(map));
+			column.push_back(std::move(map));
+		}
+		maps.push_back(std::move(column));
 	}
-	//maps.push_back(std::move(column));
 }
+void putMapInVec(sf::Texture& m_tileset, std::vector<std::vector<Map>>& newMaps, std::vector<std::vector<Map>>& oldMaps, const sf::Vector2i offsetAry)
+{
+	int worldDimensionsTotal = fullWorldDimensions + additionalDimensions;
+	for (int i = 0; i < worldDimensionsTotal; i++)
+	{
+		int mapIx = mapSize * i;
+		std::vector<Map> column;
+		column.reserve(worldDimensionsTotal);
+		sf::Vector2f offset;
+		for (int j = 0; j < worldDimensionsTotal; j++)
+		{
+			offset.x = (mapIx);
+			offset.y = (mapSize * j);
 
+			if ((i > offsetAry.x) && (j > offsetAry.y) && (i <= oldMaps.size()) && (j <= oldMaps.size()))
+			{
+				oldMaps[i - 1][j - 1].tiles.setPosition(oldMaps[i - 1][j - 1].tiles.getPosition()+sf::Vector2f(offset.x*mapSize, offset.y * mapSize));
+				column.push_back(oldMaps[i-1][j-1]);
+			}
+			else
+			{
+				Map map(m_tileset, offset);
+				spawnFloraAndFauna(map, offset);
+				column.push_back(std::move(map));
+			}
+		}
+		newMaps.push_back(std::move(column));
+	}
+}
 /*
 //TODO
 //currently this re creates the 2d grid map but only in the postive x & y direction, 
@@ -184,7 +302,7 @@ void hotLoadMaps(livingEntity& player, sf::RenderWindow& window, sf::View& view)
 
 void initMaps(livingEntity & player)
 {
-	sf::Texture m_tileset;
+	
 	// Load the tileset texture
 	if (!m_tileset.loadFromFile("resources/environment/Grass And Road Tiles/grassAndRoad.png"))
 		std::cout << "failed to load" << std::endl;
@@ -193,10 +311,9 @@ void initMaps(livingEntity & player)
 
 	
 	grass.load("resources/environment/Grass And Road Tiles/grassTuft.png");
-	for (int i = 0; i < fullWorldDimensions; i++)
-	{
-		putMapInVec(i, m_tileset);
-	}
+
+	putMapInVec(m_tileset, mapsAry);
+	
 	//player.setPos(player.getPos() - sf::Vector2f(mapSize / 2, mapSize / 2));
 
 	//extraMaps = 10;

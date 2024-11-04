@@ -50,7 +50,7 @@ int main()
 
         window.clear();
 
-        draw(window, player);
+        draw(window, player, camera);
 
         window.display();
     }

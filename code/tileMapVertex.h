@@ -9,10 +9,9 @@ class TileMap : public sf::Drawable, public sf::Transformable
 {
 public:
 
-    bool load(sf::Texture& m_tileset, const sf::Vector2u& tileSize, const int& width, const int& height,const sf::Vector2f& offset)
+    bool load(sf::Texture& m_tileset, const sf::Vector2u& tileSize, const int& width, const int& height,const sf::Vector2f& offset, int tile)
     {
         M_tileset = m_tileset;
-        int tile = 26;
         sf::Vector2f off;
         off.x = round(offset.x);
         off.y = round(offset.y);

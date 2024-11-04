@@ -82,7 +82,7 @@ public:
     int level = 1;
 
     double health = 100;
-    double speed = 2;
+    double speed = 4;
 
     int perceptionStat = 1;
     float viewRange = 100.0f * perceptionStat;

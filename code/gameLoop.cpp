@@ -123,13 +123,6 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 	if (S && D) { player.sprite.setRotation(135); }
 	if (D && W) { player.sprite.setRotation(35); }
 
-	if (abs(player.travelCounter.x) > (mapSize / 2) || abs(player.travelCounter.y) > (mapSize / 2))
-	{
-		calcNearestMaps(player);
-		player.travelCounter.x = 0;
-		player.travelCounter.y = 0;
-	}
-
 #pragma endregion
 	if (A || D || S || W) { return true; }
 	else { return false; }
@@ -137,12 +130,12 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 
 
 //draw all elements you want to show on screen
-void draw(sf::RenderWindow & window, livingEntity& player)
+void draw(sf::RenderWindow & window, livingEntity& player, sf::View& camera)
 {
 	//TODO check distance of object to see if onscreen or not before drawing
 
 	//tile set ground level draw
-	drawnNearestMaps(window, player);
+	drawnNearestMaps(window, player,camera);
 
 	//player level draw
 	window.draw(player.sprite);	
@@ -179,7 +172,7 @@ void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 
 	camera.move(sf::Vector2f((mapSize * fullWorldDimensions) / 2, (mapSize * fullWorldDimensions) / 2));
 	window.setView(camera);
-	calcNearestMaps(player);
+	//calcNearestMaps(player);
 }
 
 

@@ -8,7 +8,7 @@
 extern const int widthHeightInTiles;
 extern const int tilePixelSize;
 extern const int mapSize;
-extern int fullWorldDimensions;
+extern const int fullWorldDimensions;
 
 //seperate maps sections into chunks to be loaded in and out
 
@@ -28,7 +28,7 @@ public:
     {
         flora.resize(50);
         fauna.resize(50);
-        std::vector<std::string> loadedMap;
+        //std::vector<std::string> loadedMap;
         //loadedMap.reserve(19200);
        // std::string strList2 = readFile(file);
         //for (int i = 0; i < 19200; i++)
@@ -36,9 +36,9 @@ public:
             //loadedMap.push_back("26");
        // }
 
-
+        int tile = 26;
         if (!tiles.load(tileSet, sf::Vector2u(tilePixelSize, tilePixelSize), widthHeightInTiles,
-            widthHeightInTiles, sf::Vector2f((float)+offset.x, (float)+offset.y)))
+            widthHeightInTiles, sf::Vector2f((float)+offset.x, (float)+offset.y), tile))
         {
             print("failed to load map resource");
         }
@@ -46,8 +46,8 @@ public:
 };
 
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos);
-void drawnNearestMaps(sf::RenderWindow& window, const livingEntity& player);
+void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera);
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const Map& map);
 void initMaps(livingEntity& player);
-void calcNearestMaps(const livingEntity& player);
+void calcLoadNewMaps(int additionalMapDimensions, livingEntity& player, sf::View& camera, int directionx, int directiony, sf::RenderWindow& window);
 //void hotLoadMaps(livingEntity& player, sf::RenderWindow& window, sf::View& view);
