@@ -7,13 +7,11 @@
 #include <map>
 
 
-
-
 baseEntity grass;
-const int widthHeightInTiles = 60;
+const int widthHeightInTiles = 53;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
-int fullWorldDimensions = 50;
+int fullWorldDimensions = 24;
 
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const Map& map)
 {
