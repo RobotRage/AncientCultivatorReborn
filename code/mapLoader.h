@@ -19,6 +19,7 @@ public:
     TileMap tiles;
     std::vector<livingEntity> flora;
     std::vector<livingEntity> fauna;
+
     Map() 
     {
         flora.resize(50);
@@ -49,5 +50,5 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos);
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera);
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const Map& map);
 void initMaps(livingEntity& player);
-void calcLoadNewMaps(int additionalMapDimensions, livingEntity& player, sf::View& camera, int directionx, int directiony, sf::RenderWindow& window);
+
 //void hotLoadMaps(livingEntity& player, sf::RenderWindow& window, sf::View& view);
