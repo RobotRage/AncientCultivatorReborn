@@ -6,15 +6,10 @@
 #include <mutex>
 #include <map>
 #include <unordered_map>
-#include <utility>
-
-#pragma region forwards
-void putMapInVec(sf::Texture& m_tileset, std::vector<std::vector<Map>>& maps);
-void putMapInVec(sf::Texture& m_tileset, std::vector<std::vector<Map>>& newMaps, std::vector<std::vector<Map>>& oldMaps, const sf::Vector2i offset);
-#pragma endregion
 
 
-baseEntity grass;
+
+
 const int widthHeightInTiles = 85;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
@@ -33,27 +28,7 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const 
 	}
 }
 
-
-std::vector<std::vector<Map>> mapsAry;
-std::map<Map, int> mapX;
 sf::Texture m_tileset;
-
-
-
-// Custom hash function for a pair of integers
-struct KeyHash {
-	std::size_t operator()(const std::pair<int, int>& key) const {
-		const std::size_t prime = 31;  // A prime number
-		return std::hash<int>()(key.first) + prime * std::hash<int>()(key.second);
-	}
-};
-
-// Custom equality function for comparing two pairs of integers
-struct KeyEqual {
-	bool operator()(const std::pair<int, int>& lhs, const std::pair<int, int>& rhs) const {
-		return lhs.first == rhs.first && lhs.second == rhs.second;
-	}
-};
 
 std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps(100000);
 void addToMapIfNotFound(int x, int y)
@@ -82,6 +57,7 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	int indexy = static_cast<int>(std::floor(y / mapSize));
 	int indexx = static_cast<int>(std::floor(x / mapSize));
 
+	std::cout << "Player Map Pos-  X:" << indexx << "  Y:" << indexy << std::endl;
 
 	int offsetX = 0;
 	int offsetY = 0;
@@ -151,35 +127,38 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 
 
 
-std::mutex caclMapsMutex;
-
-
-int grassCount = 20;
-void randGrass(Map& map, sf::Vector2f& pos)
+void randFauna(Map& map, sf::Vector2f& pos, livingEntity animal)
 {
-	sf::Vector2f grassPos(rand() % mapSize + 1, rand() % mapSize + 1);
-	grass.setPos(grassPos + pos);
-	map.flora.emplace_back(grass);
+	sf::Vector2f animalpPos(rand() % mapSize + 1, rand() % mapSize + 1);
+	animal.setPos(animalpPos + pos);
+	map.fauna.push_back(animal);
+}
+void randFlora(Map& map, sf::Vector2f& pos, livingEntity plant)
+{
+	sf::Vector2f plantPos(rand() % mapSize + 1, rand() % mapSize + 1);
+	plant.setPos(plantPos + pos);
+	map.flora.emplace_back(plant);
 }
 
+baseEntity grass;
+livingEntity sheep;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
+	int grassCount = 20;
+	int sheepCount = 5;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{
-		randGrass(map, pos);
+		randFlora(map, pos, grass);
 	}
-}
-
-void moveFloraAndFlora(Map& map, sf::Vector2f offset)
-{
-	for (int i = 0; i < grassCount; i++)
+	for (int i = 0; i < sheepCount; i++)
 	{
-		map.flora[i].setPos(map.flora[i].getPos() + offset);
+		randFauna(map, pos, sheep);
 	}
 }
 
-void putMapInVec(sf::Texture& m_tileset, std::vector<std::vector<Map>>& maps)
+
+void putMapInVec(sf::Texture& m_tileset)
 {
 	int worldDimensionsTotal = fullWorldDimensions + additionalDimensions;
 	for (int i = 0; i < worldDimensionsTotal; i++)
@@ -209,7 +188,9 @@ void initMaps(livingEntity & player)
 	
 	grass.load("resources/environment/Grass And Road Tiles/grassTuft.png");
 
-	putMapInVec(m_tileset, mapsAry);
+	sheep.load("resources/animals/tile000.png");
+	sheep.sprite.setScale(1.5f, 1.5f);
+	putMapInVec(m_tileset);
 }
 
 

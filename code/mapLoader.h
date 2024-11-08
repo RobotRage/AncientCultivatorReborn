@@ -4,7 +4,8 @@
 #include "tileMapVertex.h" 
 #include "utilityFunctions.h"
 #include "entityObject.h"
-
+#include <unordered_map>
+#include <utility>
 extern const int widthHeightInTiles;
 extern const int tilePixelSize;
 extern const int mapSize;
@@ -22,13 +23,9 @@ public:
 
     Map() 
     {
-        flora.resize(50);
-        fauna.resize(50);
     };
     Map(sf::Texture tileSet, sf::Vector2f& offset)
     {
-        flora.resize(50);
-        fauna.resize(50);
         //std::vector<std::string> loadedMap;
         //loadedMap.reserve(19200);
        // std::string strList2 = readFile(file);
@@ -45,6 +42,21 @@ public:
         }
     }
 };
+// Custom hash function for a pair of integers
+struct KeyHash {
+    std::size_t operator()(const std::pair<int, int>& key) const {
+        const std::size_t prime = 31;  // A prime number
+        return std::hash<int>()(key.first) + prime * std::hash<int>()(key.second);
+    }
+};
+
+// Custom equality function for comparing two pairs of integers
+struct KeyEqual {
+    bool operator()(const std::pair<int, int>& lhs, const std::pair<int, int>& rhs) const {
+        return lhs.first == rhs.first && lhs.second == rhs.second;
+    }
+};
+extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
 
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos);
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera);

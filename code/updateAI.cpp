@@ -1,9 +1,11 @@
 #include "updateAI.h"
 #include "utilityFunctions.h"
 #include "mapLoader.h"
+
+
 void initAi()
 {
-	
+
 }
 
 void aiUpdate()

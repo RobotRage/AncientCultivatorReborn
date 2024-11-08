@@ -11,6 +11,7 @@ int main()
 
     livingEntity player;
     player.load("resources/player/playerWalk0.png");
+    player.sprite.setScale(0.5f, 0.5f);
     //sf::Thread hotLoad;
     init(camera, window, player);
 
