@@ -20,6 +20,7 @@ public:
     TileMap tiles;
     std::vector<livingEntity> flora;
     std::vector<livingEntity> fauna;
+    std::unordered_map<int, std::vector<livingEntity*>> localMapChunks;
 
     Map() 
     {
@@ -42,6 +43,7 @@ public:
         }
     }
 };
+
 // Custom hash function for a pair of integers
 struct KeyHash {
     std::size_t operator()(const std::pair<int, int>& key) const {
@@ -56,8 +58,13 @@ struct KeyEqual {
         return lhs.first == rhs.first && lhs.second == rhs.second;
     }
 };
-extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
 
+// localMapChunks only operates on hashedMaps
+
+
+extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
+int hashMapChunkIntoChunks(float x, float y);
+void addObjectToChunkMap(livingEntity& obj, Map& map);
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos);
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera);
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const Map& map);

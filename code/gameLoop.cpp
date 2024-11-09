@@ -146,20 +146,14 @@ sf::Thread aiThread(&aiUpdate);
 void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 {
 	srand(time(NULL));
+	
+	
 
-	aiThread.launch();
-	initAi();
 	std::string gameSeed = readFile("resources/environment/map_data/gameSeed.txt");
 	srand(std::stoi(gameSeed));
 
-	
-	
-	//hotLoad.launch();
 	initMaps(player);
-	
-
-	//multithreaded AI logic
-	
+	aiThread.launch(); //start ai after maps is loaded since maps loads AIs
 
 	sf::FloatRect fr = player.sprite.getLocalBounds();
 	player.sprite.setOrigin(fr.width / 2, fr.height / 2); // set origin of sprite to center of sprite
@@ -172,7 +166,6 @@ void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 
 	camera.move(sf::Vector2f((mapSize * fullWorldDimensions) / 2, (mapSize * fullWorldDimensions) / 2));
 	window.setView(camera);
-	//calcNearestMaps(player);
 }
 
 

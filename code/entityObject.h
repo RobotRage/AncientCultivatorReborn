@@ -78,18 +78,16 @@ class livingEntity : public baseEntity
 public:
 
     //stats
-
     int level = 1;
-
     double health = 100;
     double speed = 4;
-
     int perceptionStat = 1;
     float viewRange = 100.0f * perceptionStat;
-
     float interactRange = 50.0f;
-
     sf::Vector2f travelCounter{ 0,0 };
+
+    std::vector<livingEntity*> knownEntities;
+
 
     //states
     bool alive = true;
@@ -97,11 +95,18 @@ public:
     int running = 1; // Multiplier for running speed
 
 
+
+
     // Variadic template constructor to initialize baseEntity
     template<typename... Paths>
     livingEntity(Paths... paths)
         : baseEntity(paths...) // Forward paths to the base constructor
     {
+    }
+
+    void addKnownEntities(livingEntity* entity)
+    {
+        knownEntities.push_back(entity);
     }
 
     // Method to get the movement speed, modified by the "running" multiplier

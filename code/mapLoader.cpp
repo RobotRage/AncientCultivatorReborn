@@ -6,7 +6,7 @@
 #include <mutex>
 #include <map>
 #include <unordered_map>
-
+#include "updateAI.h"
 
 
 
@@ -37,8 +37,27 @@ void addToMapIfNotFound(int x, int y)
 		sf::Vector2f vecOff{ (float)x * mapSize, (float)y * mapSize };
 		Map map(m_tileset, vecOff);
 		spawnFloraAndFauna(map, vecOff);
-		hashedMaps[{x, y}] = map;
+
+		std::pair<int, int> p = { x,y };
+		hashedMaps.emplace(p,map);
 	}
+}
+
+
+int hashMapChunkIntoChunks(float x, float y) {
+	int cellSize = mapSize / 20;  // Size of each cell in your grid
+	int cellX = static_cast<int>(x) / cellSize;
+	int cellY = static_cast<int>(y) / cellSize;
+	return cellX * 73856093 ^ cellY * 19349663;  // Using a hash function for 2D coordinates
+}
+
+void addObjectToChunkMap(livingEntity& obj, Map & map) {
+	// Compute the hash for the object's position
+	int hashKey = hashMapChunkIntoChunks(obj.sprite.getPosition().x, obj.sprite.getPosition().y);
+
+	// Add the object to the appropriate cell in the hash map
+	
+	map.localMapChunks[hashKey].push_back(&obj);
 }
 
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera)
@@ -57,7 +76,7 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	int indexy = static_cast<int>(std::floor(y / mapSize));
 	int indexx = static_cast<int>(std::floor(x / mapSize));
 
-	std::cout << "Player Map Pos-  X:" << indexx << "  Y:" << indexy << std::endl;
+	//std::cout << "Player Map Pos-  X:" << indexx << "  Y:" << indexy << std::endl;
 
 	int offsetX = 0;
 	int offsetY = 0;
@@ -125,36 +144,41 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	}
 }
 
-
-
-void randFauna(Map& map, sf::Vector2f& pos, livingEntity animal)
+void randFauna(Map& map, sf::Vector2f& pos, livingEntity& animal)
 {
 	sf::Vector2f animalpPos(rand() % mapSize + 1, rand() % mapSize + 1);
 	animal.setPos(animalpPos + pos);
 	map.fauna.push_back(animal);
+	addObjectToChunkMap(animal, map);
 }
-void randFlora(Map& map, sf::Vector2f& pos, livingEntity plant)
+void randFlora(Map& map, sf::Vector2f& pos, livingEntity& plant)
 {
 	sf::Vector2f plantPos(rand() % mapSize + 1, rand() % mapSize + 1);
 	plant.setPos(plantPos + pos);
 	map.flora.emplace_back(plant);
+	addObjectToChunkMap(plant, map);
 }
 
-baseEntity grass;
-livingEntity sheep;
+livingEntity tgrass;
+livingEntity tsheep;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
+
+
 	int grassCount = 20;
 	int sheepCount = 5;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{
-		randFlora(map, pos, grass);
+		randFlora(map, pos, tgrass);
+		tgrass.name = "grass_" + std::to_string(i);
 	}
 	for (int i = 0; i < sheepCount; i++)
 	{
-		randFauna(map, pos, sheep);
+		randFauna(map, pos, tsheep);
+		tsheep.name = "sheep_" + std::to_string(i);
 	}
+
 }
 
 
@@ -185,12 +209,15 @@ void initMaps(livingEntity & player)
 
 	m_tileset.setSmooth(false); //try fix the black lines between sprites
 
+	tgrass.load("resources/environment/Grass And Road Tiles/grassTuft.png");
 	
-	grass.load("resources/environment/Grass And Road Tiles/grassTuft.png");
 
-	sheep.load("resources/animals/tile000.png");
-	sheep.sprite.setScale(1.5f, 1.5f);
+	tsheep.load("resources/animals/tile000.png");
+	tsheep.sprite.setScale(1.5f, 1.5f);
+
 	putMapInVec(m_tileset);
+
+	initAi();
 }
 
 
