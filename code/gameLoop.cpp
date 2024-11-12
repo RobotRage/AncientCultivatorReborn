@@ -21,7 +21,6 @@ void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 {
 	player.entityMoving = userInput(camera, window, player);
 	if (player.entityMoving) { camMoveCheck(camera, window,player); } // only check camera bounds if player is inputting movement
-	//print("update");
 }
 
 // move the camera in the direction the player is moving if they are outside a certain distance of the center of the screen
@@ -147,6 +146,11 @@ void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 {
 	srand(time(NULL));
 	
+	std::string fontPath = "resources/font/Pelagiad.ttf";
+	if (!font.loadFromFile(fontPath))
+	{
+		std::cout << "could not load font " << fontPath << " from file" << std::endl;
+	}
 	
 
 	std::string gameSeed = readFile("resources/environment/map_data/gameSeed.txt");

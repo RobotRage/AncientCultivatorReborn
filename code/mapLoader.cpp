@@ -16,15 +16,49 @@ const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 4;
 int additionalDimensions = 0;
 
-void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const Map& map)
+const bool debug = 1;
+void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const Map& map)
 {
 	for (int i = 0; i < map.flora.size(); i++)
 	{
 		window.draw(map.flora[i].sprite);
+		
 	}
 	for (int i = 0; i < map.fauna.size(); i++)
 	{
 		window.draw(map.fauna[i].sprite);
+	}
+}
+
+
+void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, Map& map)
+{
+	
+	for (int i = 0; i < map.flora.size(); i++)
+	{
+		window.draw(map.flora[i].sprite);
+		map.flora[i].label.setPosition(map.flora[i].getPos());
+		window.draw(map.flora[i].label);
+
+	}
+	for (int i = 0; i < map.fauna.size(); i++)
+	{
+		sf::Color sightCol = { 255,255,255,150 };
+		window.draw(map.fauna[i].sprite);
+		map.fauna[i].label.setPosition(map.fauna[i].getPos());
+		window.draw(map.fauna[i].label);
+		sf::CircleShape circle(map.fauna[i].viewRange);
+		circle.setPosition(map.fauna[i].getPos());
+		if (map.fauna[i].knownEntities.size() > 0)
+		{
+			sightCol = { 255,10,10,150 };
+		}
+		else
+		{
+			sightCol = { 255,255,255,150 };
+		}
+		circle.setFillColor(sightCol);
+		window.draw(circle);
 	}
 }
 
@@ -42,22 +76,68 @@ void addToMapIfNotFound(int x, int y)
 		hashedMaps.emplace(p,map);
 	}
 }
-
-
-int hashMapChunkIntoChunks(float x, float y) {
-	int cellSize = mapSize / 20;  // Size of each cell in your grid
-	int cellX = static_cast<int>(x) / cellSize;
-	int cellY = static_cast<int>(y) / cellSize;
-	return cellX * 73856093 ^ cellY * 19349663;  // Using a hash function for 2D coordinates
+const int cellSize = mapSize / 20;
+int calcChunkMap(livingEntity& obj)
+{
+	int cellX = static_cast<int>(obj.sprite.getPosition().x) / cellSize;
+	int cellY = static_cast<int>(obj.sprite.getPosition().y) / cellSize;
+	return  cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
 }
 
-void addObjectToChunkMap(livingEntity& obj, Map & map) {
-	// Compute the hash for the object's position
-	int hashKey = hashMapChunkIntoChunks(obj.sprite.getPosition().x, obj.sprite.getPosition().y);
+void addObjectToChunkMap(livingEntity& obj, Map& map) {	
+	int cellX = static_cast<int>(obj.sprite.getPosition().x) / cellSize;
+	int cellY = static_cast<int>(obj.sprite.getPosition().y) / cellSize;
+	int hashKey = cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
 
-	// Add the object to the appropriate cell in the hash map
-	
-	map.localMapChunks[hashKey].push_back(&obj);
+	map.localMapChunksLiving[hashKey].push_back(&obj);
+
+	// Calculate relative position within the chunk
+	float chunkLeft = cellX * cellSize;
+	float chunkRight = chunkLeft + cellSize;
+	float chunkTop = cellY * cellSize;
+	float chunkBottom = chunkTop + cellSize;
+
+	float objX = obj.sprite.getPosition().x;
+	float objY = obj.sprite.getPosition().y;
+
+	// Determine which sides the object is near
+	ChunkSideInfo sideInfo;
+	const float threshold = cellSize/5.0f; //20% 
+
+	if (objX - chunkLeft <= threshold) sideInfo.left = true;
+	if (chunkRight - objX <= threshold) sideInfo.right = true;
+	if (objY - chunkTop <= threshold) sideInfo.top = true;
+	if (chunkBottom - objY <= threshold) sideInfo.bottom = true;
+
+	obj.sideOfChunk = sideInfo;
+}
+
+void addObjectToChunkMap(baseEntity& obj, Map& map) {
+	int cellX = static_cast<int>(obj.sprite.getPosition().x) / cellSize;
+	int cellY = static_cast<int>(obj.sprite.getPosition().y) / cellSize;
+	int hashKey = cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
+
+	map.localMapChunksItems[hashKey].push_back(&obj);
+
+	// Calculate relative position within the chunk
+	float chunkLeft = cellX * cellSize;
+	float chunkRight = chunkLeft + cellSize;
+	float chunkTop = cellY * cellSize;
+	float chunkBottom = chunkTop + cellSize;
+
+	float objX = obj.sprite.getPosition().x;
+	float objY = obj.sprite.getPosition().y;
+
+	// Determine which sides the object is near
+	ChunkSideInfo sideInfo;
+	const float threshold = cellSize / 5.0f; //20% 
+
+	if (objX - chunkLeft <= threshold) sideInfo.left = true;
+	if (chunkRight - objX <= threshold) sideInfo.right = true;
+	if (objY - chunkTop <= threshold) sideInfo.top = true;
+	if (chunkBottom - objY <= threshold) sideInfo.bottom = true;
+
+	obj.sideOfChunk = sideInfo;
 }
 
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera)
@@ -98,9 +178,9 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 		offsetY -= 1;
 	}
 
-	addToMapIfNotFound( indexx + offsetX, indexy + offsetY);
-	addToMapIfNotFound( indexx, indexy + offsetY);
-	addToMapIfNotFound( indexx + offsetX, indexy);
+	addToMapIfNotFound(indexx + offsetX, indexy + offsetY);
+	addToMapIfNotFound(indexx, indexy + offsetY);
+	addToMapIfNotFound(indexx + offsetX, indexy);
 	addToMapIfNotFound(indexx, indexy);
 
 	window.draw(hashedMaps[{indexx, indexy}].tiles);
@@ -109,39 +189,63 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	if ((offsetX != 0) && (offsetY != 0))
 	{
 		window.draw(hashedMaps[{indexx + offsetX, indexy + offsetY}].tiles);
-		window.draw(hashedMaps[{indexx,indexy + offsetY}].tiles);
+		window.draw(hashedMaps[{indexx, indexy + offsetY}].tiles);
 		window.draw(hashedMaps[{indexx + offsetX, indexy}].tiles);
 	}
 	else if (offsetX != 0)
 	{
-		window.draw(hashedMaps[{indexx + offsetX,indexy + offsetY}].tiles);
+		window.draw(hashedMaps[{indexx + offsetX, indexy + offsetY}].tiles);
 		window.draw(hashedMaps[{indexx, indexy + offsetY}].tiles);
 	}
 	else if (offsetY != 0)
 	{
-		window.draw(hashedMaps[{indexx + offsetX,indexy + offsetY}].tiles);
+		window.draw(hashedMaps[{indexx + offsetX, indexy + offsetY}].tiles);
 		window.draw(hashedMaps[{indexx + offsetX, indexy}].tiles);
 	}
 
+	if (debug)
+	{
+		drawFloraFaunaDebug(window, player, hashedMaps[{indexx, indexy}]);
 
-	drawFloraFauna(window, player, hashedMaps[{indexx,indexy}]);
+		if ((offsetX != 0) && (offsetY != 0))
+		{
+			drawFloraFaunaDebug(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
+			drawFloraFaunaDebug(window, player, hashedMaps[{indexx, indexy + offsetY}]);
+			drawFloraFaunaDebug(window, player, hashedMaps[{indexx + offsetX, indexy}]);
+		}
+		else if (offsetX != 0)
+		{
+			drawFloraFaunaDebug(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
+			drawFloraFaunaDebug(window, player, hashedMaps[{indexx, indexy + offsetY}]);
+		}
+		else if (offsetY != 0)
+		{
+			drawFloraFaunaDebug(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
+			drawFloraFaunaDebug(window, player, hashedMaps[{indexx + offsetX, indexy}]);
+		}
+	}
+	else
+	{
+		drawFloraFauna(window, player, hashedMaps[{indexx, indexy}]);
 
-	if ((offsetX != 0) && (offsetY != 0))
-	{
-		drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
-		drawFloraFauna(window, player, hashedMaps[{indexx, indexy + offsetY}]);
-		drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}]);
+		if ((offsetX != 0) && (offsetY != 0))
+		{
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
+			drawFloraFauna(window, player, hashedMaps[{indexx, indexy + offsetY}]);
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}]);
+		}
+		else if (offsetX != 0)
+		{
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
+			drawFloraFauna(window, player, hashedMaps[{indexx, indexy + offsetY}]);
+		}
+		else if (offsetY != 0)
+		{
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}]);
+		}
 	}
-	else if (offsetX != 0)
-	{
-		drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
-		drawFloraFauna(window, player, hashedMaps[{indexx,indexy + offsetY}]);
-	}
-	else if (offsetY != 0)
-	{
-		drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
-		drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}]);
-	}
+
 }
 
 void randFauna(Map& map, sf::Vector2f& pos, livingEntity& animal)
@@ -159,6 +263,13 @@ void randFlora(Map& map, sf::Vector2f& pos, livingEntity& plant)
 	addObjectToChunkMap(plant, map);
 }
 
+void setLabelFont(livingEntity& ent)
+{
+	ent.label.setFont(font);
+	ent.label.setPosition(ent.getPos());
+	ent.label.setString(ent.name);
+}
+
 livingEntity tgrass;
 livingEntity tsheep;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
@@ -172,11 +283,13 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 	{
 		randFlora(map, pos, tgrass);
 		tgrass.name = "grass_" + std::to_string(i);
+		setLabelFont(tgrass);
 	}
 	for (int i = 0; i < sheepCount; i++)
 	{
 		randFauna(map, pos, tsheep);
 		tsheep.name = "sheep_" + std::to_string(i);
+		setLabelFont(tsheep);
 	}
 
 }

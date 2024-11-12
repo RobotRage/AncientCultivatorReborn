@@ -8,22 +8,73 @@ void initAi()
 
 }
 
-
-void simulate(livingEntity& entity, Map & map)
+void inViewCheck(livingEntity& entity, Map& map, std::vector<livingEntity*>& chunkedEntities, const int& i)
 {
-	entity.setPos(sf::Vector2f(entity.getPos().x + 1, entity.getPos().y + 1));
-
-	if (map.localMapChunks.find(hashMapChunkIntoChunks(entity.getPos().x, entity.getPos().y)) != map.localMapChunks.end()) // if simulation entity is in same chunk as other living ent
+	if (entity.viewRange >= distanceCheck(chunkedEntities[i]->getPos(), entity.getPos()))
 	{
-		std::vector<livingEntity*>& chunkedEntities = map.localMapChunks[hashMapChunkIntoChunks(entity.getPos().x, entity.getPos().y)];
-		for (int i = 0; i < chunkedEntities.size(); i++)
+		auto it = std::find(entity.knownEntities.begin(), entity.knownEntities.end(), chunkedEntities[i]);
+
+		//add size offset for sprite size
+		if (it == entity.knownEntities.end())
 		{
-			if (entity.sprite.getGlobalBounds().intersects(chunkedEntities[i]->sprite.getGlobalBounds()))
+			entity.knownEntities.push_back(chunkedEntities[i]);
+		}		
+	}
+}
+
+void checkChunkForOtherEntities(livingEntity& entity, Map& map)
+{
+	if (map.localMapChunksLiving.find(calcChunkMap(entity)) != map.localMapChunksLiving.end()) // if simulation entity is in same chunk as other living ent
+	{
+		if (entity.sideOfChunk.left && entity.sideOfChunk.top)
+		{
+
+		}
+		else if (entity.sideOfChunk.top && entity.sideOfChunk.right)
+		{
+
+		}
+		else if (entity.sideOfChunk.right && entity.sideOfChunk.bottom)
+		{
+
+		}
+		else if (entity.sideOfChunk.bottom && entity.sideOfChunk.left)
+		{
+
+		}
+		else if (entity.sideOfChunk.left)
+		{
+
+		}
+		else if (entity.sideOfChunk.right)
+		{
+
+		}
+		else if (entity.sideOfChunk.bottom)
+		{
+
+		}
+		else if (entity.sideOfChunk.top)
+		{
+
+		}
+		else
+		{
+			std::vector<livingEntity*>& chunkedEntities = map.localMapChunksLiving[calcChunkMap(entity)];
+			for (int i = 0; i < chunkedEntities.size(); i++)
 			{
-				std::cout << entity.name << " collided with " << chunkedEntities[i]->name << std::endl;
+				if (chunkedEntities[i]->getPos() == entity.getPos()) { continue; }
+				inViewCheck(entity, map, chunkedEntities, i);
+
 			}
 		}
 	}
+}
+
+void simulate(livingEntity& entity, Map& map)
+{
+	entity.setPos(sf::Vector2f(entity.getPos().x + rand() % 40 - 20, entity.getPos().y + rand() % 40 - 20));
+	checkChunkForOtherEntities(entity, map);
 }
 
 void aiUpdate()
@@ -32,19 +83,24 @@ void aiUpdate()
 	{
 		for (auto it = hashedMaps.begin(); it != hashedMaps.end(); it++)
 		{
-			it->second.localMapChunks.clear();
+			//recalculate map chunks
+			it->second.localMapChunksLiving.clear();
 			for (int a = 0; a < it->second.fauna.size(); a++)
 			{
 				addObjectToChunkMap(it->second.fauna[a], it->second);
 			}
+			for (int a = 0; a < it->second.flora.size(); a++)
+			{
+				addObjectToChunkMap(it->second.flora[a], it->second);
+			}
 
-			std::vector<livingEntity>& ent = it->second.fauna;
+			std::vector<livingEntity>& ent = it->second.fauna; //only simulate for fauna
 			for (int i = 0; i < ent.size(); i++)
 			{
 				simulate(ent[i], it->second);
 			}			
 		}
 		//print("ai");
-		//sf::sleep(sf::seconds(0.5f));
+		sf::sleep(sf::seconds(0.5f));
 	}
 }

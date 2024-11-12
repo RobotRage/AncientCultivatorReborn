@@ -2,6 +2,12 @@
 
 #include "includes.h"
 
+struct ChunkSideInfo {
+    bool top = false;
+    bool bottom = false;
+    bool left = false;
+    bool right = false;
+};
 
 class baseEntity
 {
@@ -11,6 +17,10 @@ public:
     sf::Sprite sprite;
     std::vector<sf::Texture> moveAnim;     // Animation textures for movement
     std::vector<sf::Texture> defaultAnim;  // Animation textures for default state
+    ChunkSideInfo sideOfChunk;
+
+
+    sf::Text label;
 
     // Variadic template constructor to load textures
     template<typename... Paths>
@@ -73,6 +83,7 @@ class nonLivingEntity : public baseEntity
 
 };
 
+
 class livingEntity : public baseEntity
 {
 public:
@@ -82,12 +93,13 @@ public:
     double health = 100;
     double speed = 4;
     int perceptionStat = 1;
-    float viewRange = 100.0f * perceptionStat;
-    float interactRange = 50.0f;
+    float viewRange = 50.0f * perceptionStat;
+    float interactRange = 10.0f;
     sf::Vector2f travelCounter{ 0,0 };
 
-    std::vector<livingEntity*> knownEntities;
+    std::vector<baseEntity*> knownEntities;
 
+    
 
     //states
     bool alive = true;
@@ -102,11 +114,6 @@ public:
     livingEntity(Paths... paths)
         : baseEntity(paths...) // Forward paths to the base constructor
     {
-    }
-
-    void addKnownEntities(livingEntity* entity)
-    {
-        knownEntities.push_back(entity);
     }
 
     // Method to get the movement speed, modified by the "running" multiplier
