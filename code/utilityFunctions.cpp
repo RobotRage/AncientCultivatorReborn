@@ -18,12 +18,9 @@ void print(std::string s)
 bool moved = false;
 
 
-// Calculates the distance between two points represented as SFML vectors
-float distanceCheck(const sf::Vector2f& v1, const sf::Vector2f& v2)
-{
-    float dx = v2.x - v1.x;
-    float dy = v2.y - v1.y;
-    return std::sqrt(dx * dx + dy * dy);
+
+float distance(const sf::Vector2f& p1, const sf::Vector2f& p2) {
+    return std::sqrt(std::pow(p2.x - p1.x, 2) + std::pow(p2.y - p1.y, 2));
 }
 
 // Rounds the components of a vector to the nearest whole number

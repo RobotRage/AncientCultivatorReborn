@@ -2,6 +2,7 @@
 #include "gameLoop.h"
 #include "entityObject.h"
 #include "mapLoader.h"
+#include "globalSettings.h"
 
 int main()
 {
@@ -11,9 +12,7 @@ int main()
 
     sf::View camera = window.getDefaultView();
 
-    livingEntity player;
-    player.load("resources/player/playerWalk0.png");
-    player.sprite.setScale(0.5f, 0.5f);
+    playerLoad();
     //sf::Thread hotLoad;
     init(camera, window, player);
 

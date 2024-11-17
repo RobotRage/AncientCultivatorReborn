@@ -10,7 +10,7 @@
 
 
 
-const int widthHeightInTiles = 85;
+const int widthHeightInTiles = 25;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 1;
@@ -30,7 +30,7 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const M
 	}
 }
 
-
+int iter = 0;
 void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, Map& map)
 {
 	for (int i = 0; i < map.flora.size(); i++)
@@ -46,17 +46,17 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, M
 		window.draw(map.fauna[i].sprite);
 
 		sf::Lock lock(lineMutexDebug);
-		if (viewLineList.size() != 0)
-		{
-			viewLineList2 = viewLineList;
-		}
 		
 		for (int j = 0; j < viewLineList2.size(); j++)
 		{
 			window.draw(viewLineList2[j]);
 		}
-		viewLineList.clear();
-
+		iter++;
+		if (iter > 200)
+		{
+			iter = 0;
+			viewLineList2.clear();
+		}
 		map.fauna[i].label.setPosition(map.fauna[i].getPos());
 		window.draw(map.fauna[i].label);
 		sf::CircleShape circle(map.fauna[i].viewRange);
@@ -89,17 +89,27 @@ void addToMapIfNotFound(int x, int y)
 		hashedMaps.emplace(p,map);
 	}
 }
-const int cellSize = mapSize*20;
-int calcChunkMap(livingEntity& obj)
+const int cellSize = mapSize;
+int calcChunkMap(sf::Vector2f & obj)
 {
-	int cellX = static_cast<int>(obj.sprite.getPosition().x) / cellSize;
-	int cellY = static_cast<int>(obj.sprite.getPosition().y) / cellSize;
+	int posx = (obj.x);
+	int posy = (obj.y);
+	int moddedx = posx % mapSize;
+	int moddedy = posy % mapSize;
+
+	int cellX = (int)floor((moddedx / cellSize));
+	int cellY = (int)floor((moddedy / cellSize));
 	return  cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
 }
 
 void addObjectToChunkMap(livingEntity& obj, Map& map) {	
-	int cellX = static_cast<int>(obj.sprite.getPosition().x) / cellSize;
-	int cellY = static_cast<int>(obj.sprite.getPosition().y) / cellSize;
+	int posx = (obj.sprite.getPosition().x );
+	int posy = (obj.sprite.getPosition().y );
+	int moddedx = posx % mapSize;
+	int moddedy = posy % mapSize;
+
+	int cellX = (int)floor((moddedx / cellSize));
+	int cellY = (int)floor((moddedy / cellSize));
 	int hashKey = cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
 
 	map.localMapChunksLiving[hashKey].push_back(&obj);
@@ -110,48 +120,20 @@ void addObjectToChunkMap(livingEntity& obj, Map& map) {
 	float chunkTop = cellY * cellSize;
 	float chunkBottom = chunkTop + cellSize;
 
-	float objX = obj.sprite.getPosition().x;
-	float objY = obj.sprite.getPosition().y;
+
 
 	// Determine which sides the object is near
 	ChunkSideInfo sideInfo;
-	const float threshold = cellSize/5.0f; //20% 
+	const float threshold = cellSize/3.0f; 
 
-	if (objX - chunkLeft <= threshold) sideInfo.left = true;
-	if (chunkRight - objX <= threshold) sideInfo.right = true;
-	if (objY - chunkTop <= threshold) sideInfo.top = true;
-	if (chunkBottom - objY <= threshold) sideInfo.bottom = true;
+	if (moddedx - chunkLeft <= threshold) sideInfo.left = true;
+	if (chunkRight - moddedx <= threshold) sideInfo.right = true;
+	if (moddedy - chunkTop <= threshold) sideInfo.top = true;
+	if (chunkBottom - moddedy <= threshold) sideInfo.bottom = true;
 
 	obj.sideOfChunk = sideInfo;
 }
 
-void addObjectToChunkMap(baseEntity& obj, Map& map) {
-	int cellX = static_cast<int>(obj.sprite.getPosition().x) / cellSize;
-	int cellY = static_cast<int>(obj.sprite.getPosition().y) / cellSize;
-	int hashKey = cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
-
-	map.localMapChunksItems[hashKey].push_back(&obj);
-
-	// Calculate relative position within the chunk
-	float chunkLeft = cellX * cellSize;
-	float chunkRight = chunkLeft + cellSize;
-	float chunkTop = cellY * cellSize;
-	float chunkBottom = chunkTop + cellSize;
-
-	float objX = obj.sprite.getPosition().x;
-	float objY = obj.sprite.getPosition().y;
-
-	// Determine which sides the object is near
-	ChunkSideInfo sideInfo;
-	const float threshold = cellSize / 5.0f; //20% 
-
-	if (objX - chunkLeft <= threshold) sideInfo.left = true;
-	if (chunkRight - objX <= threshold) sideInfo.right = true;
-	if (objY - chunkTop <= threshold) sideInfo.top = true;
-	if (chunkBottom - objY <= threshold) sideInfo.bottom = true;
-
-	obj.sideOfChunk = sideInfo;
-}
 
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera)
 {
@@ -291,7 +273,7 @@ int entityCounter = 0;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
 	int grassCount = 10;
-	int sheepCount = 1;
+	int sheepCount = 2;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{		

@@ -66,7 +66,7 @@ struct KeyEqual {
 
 
 extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
-int calcChunkMap(livingEntity& obj);
+int calcChunkMap(sf::Vector2f & obj);
 void addObjectToChunkMap(livingEntity& obj, Map& map);
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos);
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera);

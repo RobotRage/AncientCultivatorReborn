@@ -30,7 +30,7 @@ void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& play
 	sf::Vector2f centerCam = camera.getCenter();
 	sf::Vector2f playerPos = player.sprite.getPosition();
 
-	float dist = distanceCheck(centerCam, playerPos);
+	float dist = distance(centerCam, playerPos);
 	if (dist > playerDistFromCenterCamToTriggerMoveCam)
 	{
 

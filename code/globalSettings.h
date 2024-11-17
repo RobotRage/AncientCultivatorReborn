@@ -12,3 +12,6 @@ extern const bool debug;
 extern sf::Mutex lineMutexDebug;
 extern std::vector<sf::VertexArray> viewLineList;
 extern std::vector<sf::VertexArray> viewLineList2;
+
+extern livingEntity player;
+void playerLoad();
