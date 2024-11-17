@@ -14,6 +14,14 @@ void inViewCheck(livingEntity& entity, Map& map, std::vector<livingEntity*>& chu
 	{
 		auto it = std::find(entity.knownEntities.begin(), entity.knownEntities.end(), chunkedEntities[i]);
 
+		//std::cout << "ah "<< std::flush;
+		if (debug)
+		{
+			std::cout << entity.name << " pos: " << entity.getPos().x << "," << entity.getPos().y << "  " << chunkedEntities[i]->name << " targetPos: " << chunkedEntities[i]->getPos().x << "," << chunkedEntities[i]->getPos().y << std::endl;
+		}
+		
+		
+		
 		//add size offset for sprite size
 		if (it == entity.knownEntities.end())
 		{
@@ -26,6 +34,36 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 {
 	if (map.localMapChunksLiving.find(calcChunkMap(entity)) != map.localMapChunksLiving.end()) // if simulation entity is in same chunk as other living ent
 	{
+		std::vector<livingEntity*>& chunkedEntities = map.localMapChunksLiving[calcChunkMap(entity)];
+		
+		//add size offset for sprite size
+
+		for (int i = 0; i < chunkedEntities.size(); i++)
+		{
+				
+				if (chunkedEntities[i]->name != entity.name)
+				{
+					if (debug)
+					{
+						sf::Lock lock(lineMutexDebug); 
+
+						//viewLineList.clear();
+						sf::VertexArray line(sf::Lines, 2);
+
+						line[0].position = entity.getPos(); // Start point
+						line[0].color = sf::Color::Red;
+						line[1].position = chunkedEntities[i]->getPos(); // End point
+						line[1].color = sf::Color::Blue;
+
+						viewLineList.push_back(line);
+						
+					}
+					if (chunkedEntities[i]->getPos() == entity.getPos()) { continue; }
+					inViewCheck(entity, map, chunkedEntities, i);
+
+				}
+			}
+		
 		if (entity.sideOfChunk.left && entity.sideOfChunk.top)
 		{
 
@@ -60,15 +98,35 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 		}
 		else
 		{
+			
 			std::vector<livingEntity*>& chunkedEntities = map.localMapChunksLiving[calcChunkMap(entity)];
 			for (int i = 0; i < chunkedEntities.size(); i++)
 			{
+				if (debug)
+				{
+					sf::Lock lock(lineMutexDebug);
+
+					viewLineList.clear();
+					sf::VertexArray line(sf::Lines, 2);
+
+					line[0].position = entity.getPos(); // Start point
+					line[0].color = sf::Color::Red;            
+					line[1].position = chunkedEntities[i]->getPos(); // End point
+					line[1].color = sf::Color::Blue;
+
+					viewLineList.push_back(line);
+				}
+
 				if (chunkedEntities[i]->getPos() == entity.getPos()) { continue; }
 				inViewCheck(entity, map, chunkedEntities, i);
-
 			}
 		}
 	}
+}
+
+void travel()
+{
+
 }
 
 void simulate(livingEntity& entity, Map& map)
@@ -81,6 +139,7 @@ void aiUpdate()
 {
 	while (1)
 	{
+		
 		for (auto it = hashedMaps.begin(); it != hashedMaps.end(); it++)
 		{
 			//recalculate map chunks

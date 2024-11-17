@@ -1,6 +1,8 @@
 #pragma once
 
 #include "includes.h"
+#include <mutex>
+#include "utilityFunctions.h"
 
 struct ChunkSideInfo {
     bool top = false;
@@ -18,8 +20,8 @@ public:
     std::vector<sf::Texture> moveAnim;     // Animation textures for movement
     std::vector<sf::Texture> defaultAnim;  // Animation textures for default state
     ChunkSideInfo sideOfChunk;
-
-
+    std::vector<int> lst;
+    
     sf::Text label;
 
     // Variadic template constructor to load textures
@@ -93,7 +95,7 @@ public:
     double health = 100;
     double speed = 4;
     int perceptionStat = 1;
-    float viewRange = 50.0f * perceptionStat;
+    float viewRange = 100.0f * perceptionStat;
     float interactRange = 10.0f;
     sf::Vector2f travelCounter{ 0,0 };
 

@@ -26,6 +26,7 @@ void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 // move the camera in the direction the player is moving if they are outside a certain distance of the center of the screen
 void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 {
+
 	sf::Vector2f centerCam = camera.getCenter();
 	sf::Vector2f playerPos = player.sprite.getPosition();
 

@@ -5,6 +5,8 @@
 
 int main()
 {
+
+   
     sf::RenderWindow window(sf::VideoMode(screenx, screeny), "Ancient Cultivator Reborn");
 
     sf::View camera = window.getDefaultView();

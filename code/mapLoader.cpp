@@ -13,10 +13,10 @@
 const int widthHeightInTiles = 85;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
-const int fullWorldDimensions = 4;
+const int fullWorldDimensions = 1;
 int additionalDimensions = 0;
 
-const bool debug = 1;
+
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const Map& map)
 {
 	for (int i = 0; i < map.flora.size(); i++)
@@ -33,7 +33,6 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const M
 
 void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, Map& map)
 {
-	
 	for (int i = 0; i < map.flora.size(); i++)
 	{
 		window.draw(map.flora[i].sprite);
@@ -45,9 +44,23 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, M
 	{
 		sf::Color sightCol = { 255,255,255,150 };
 		window.draw(map.fauna[i].sprite);
+
+		sf::Lock lock(lineMutexDebug);
+		if (viewLineList.size() != 0)
+		{
+			viewLineList2 = viewLineList;
+		}
+		
+		for (int j = 0; j < viewLineList2.size(); j++)
+		{
+			window.draw(viewLineList2[j]);
+		}
+		viewLineList.clear();
+
 		map.fauna[i].label.setPosition(map.fauna[i].getPos());
 		window.draw(map.fauna[i].label);
 		sf::CircleShape circle(map.fauna[i].viewRange);
+		circle.setOrigin(circle.getRadius() , circle.getRadius() );
 		circle.setPosition(map.fauna[i].getPos());
 		if (map.fauna[i].knownEntities.size() > 0)
 		{
@@ -76,7 +89,7 @@ void addToMapIfNotFound(int x, int y)
 		hashedMaps.emplace(p,map);
 	}
 }
-const int cellSize = mapSize / 20;
+const int cellSize = mapSize*20;
 int calcChunkMap(livingEntity& obj)
 {
 	int cellX = static_cast<int>(obj.sprite.getPosition().x) / cellSize;
@@ -245,12 +258,12 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}]);
 		}
 	}
-
 }
 
 void randFauna(Map& map, sf::Vector2f& pos, livingEntity& animal)
 {
 	sf::Vector2f animalpPos(rand() % mapSize + 1, rand() % mapSize + 1);
+	//sf::Vector2f animalpPos(25, 25);
 	animal.setPos(animalpPos + pos);
 	map.fauna.push_back(animal);
 	addObjectToChunkMap(animal, map);
@@ -258,6 +271,7 @@ void randFauna(Map& map, sf::Vector2f& pos, livingEntity& animal)
 void randFlora(Map& map, sf::Vector2f& pos, livingEntity& plant)
 {
 	sf::Vector2f plantPos(rand() % mapSize + 1, rand() % mapSize + 1);
+	//sf::Vector2f plantPos(1, 1);
 	plant.setPos(plantPos + pos);
 	map.flora.emplace_back(plant);
 	addObjectToChunkMap(plant, map);
@@ -272,26 +286,30 @@ void setLabelFont(livingEntity& ent)
 
 livingEntity tgrass;
 livingEntity tsheep;
+
+int entityCounter = 0;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
-
-
-	int grassCount = 20;
-	int sheepCount = 5;
+	int grassCount = 10;
+	int sheepCount = 1;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
-	{
+	{		
+		
+		tgrass.name = "grass_" + std::to_string(entityCounter);
+		tgrass.sprite.setOrigin(tgrass.sprite.getLocalBounds().width / 2, tgrass.sprite.getLocalBounds().height / 2);
 		randFlora(map, pos, tgrass);
-		tgrass.name = "grass_" + std::to_string(i);
 		setLabelFont(tgrass);
+		entityCounter++;
 	}
 	for (int i = 0; i < sheepCount; i++)
-	{
+	{			
+		tsheep.name = "sheep_" + std::to_string(entityCounter);
+		tsheep.sprite.setOrigin(tsheep.sprite.getLocalBounds().width / 2, tsheep.sprite.getLocalBounds().height / 2);
 		randFauna(map, pos, tsheep);
-		tsheep.name = "sheep_" + std::to_string(i);
 		setLabelFont(tsheep);
+		entityCounter++;
 	}
-
 }
 
 
@@ -318,15 +336,17 @@ void putMapInVec(sf::Texture& m_tileset)
 void initMaps(livingEntity & player)
 {
 	if (!m_tileset.loadFromFile("resources/environment/Grass And Road Tiles/grassAndRoad.png"))
+	{
 		std::cout << "failed to load" << std::endl;
+	}
+		
 
 	m_tileset.setSmooth(false); //try fix the black lines between sprites
 
-	tgrass.load("resources/environment/Grass And Road Tiles/grassTuft.png");
-	
-
+	tgrass.load("resources/environment/Grass And Road Tiles/grassTuft.png");	
 	tsheep.load("resources/animals/tile000.png");
-	tsheep.sprite.setScale(1.5f, 1.5f);
+	tsheep.sprite.setScale(2, 2);
+	
 
 	putMapInVec(m_tileset);
 
