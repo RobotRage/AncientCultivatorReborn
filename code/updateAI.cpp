@@ -2,6 +2,7 @@
 #include "utilityFunctions.h"
 #include "mapLoader.h"
 #include "globalSettings.h"
+#include <utility>
 //called from mapLoader
 void initAi()
 {
@@ -11,7 +12,7 @@ void initAi()
 
 void inViewCheck(livingEntity& entity, Map& map, std::vector<livingEntity*>& chunkedEntities, const int& i)
 {
-	if (entity.viewRange >= distance(chunkedEntities[i]->getPos(), entity.getPos()))
+	if (entity.viewRange >= distance(chunkedEntities[i]->getPos(), entity.getPos()) - (chunkedEntities[i]->sprite.getLocalBounds().width/2))
 	{
 		auto it = std::find(entity.knownEntities.begin(), entity.knownEntities.end(), chunkedEntities[i]);
 
@@ -38,7 +39,6 @@ void loopChunks(livingEntity& entity, Map& map, const int & offX, const int & of
 
 	for (int i = 0; i < chunkedEntities.size(); i++)
 	{
-
 		if (chunkedEntities[i]->name != entity.name)
 		{
 			if (debug)
@@ -73,28 +73,13 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	
 	
 			loopChunks(entity, map, -1, 1);
-		
-
 			loopChunks(entity, map, 1, 1);
-
 			loopChunks(entity, map, 1, -1);
-		
-
 			loopChunks(entity, map, -1, -1);
-		
-
 			loopChunks(entity, map, -1, 0);
-		
-
 			loopChunks(entity, map, 1, 0);
-		
-
 			loopChunks(entity, map, 0, -1);
-		
-
 			loopChunks(entity, map, 0, 1);
-		
-
 			loopChunks(entity, map, 0, 0);
 		
 		/*
@@ -137,14 +122,31 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	//}
 }
 
-void travel()
+void travel(livingEntity& entity, sf::Vector2f & entPos)
 {
+	float dist = distance(entPos, sf::Vector2f(entity.targetMove.x, entity.targetMove.y));
 
+	float stepX = (entity.targetMove.x - entPos.x) / dist;
+	float stepY = (entity.targetMove.y - entPos.y) / dist;
+
+	entity.setPos(sf::Vector2f((entity.getPos().x) + stepX, (entity.getPos().y + stepY)));
 }
 
 void simulate(livingEntity& entity, Map& map)
 {
-	//entity.setPos(sf::Vector2f(entity.getPos().x + rand() % 40 - 20, entity.getPos().y + rand() % 40 - 20));
+	if (entity.name == "sheep_65")
+	{
+		int x = 1;
+	}
+	sf::Vector2f entPos = entity.getPos();
+
+	if ((entity.targetMove.x == 0 && entity.targetMove.y == 0) ||(round(entPos.x) == round(entity.targetMove.x) && round(entPos.y) == round(entity.targetMove.y)))
+	{
+		entity.targetMove.x = entPos.x + entity.viewRange * cos(rand() % (int)(2 * 3.14159f));
+		entity.targetMove.y = entPos.y + entity.viewRange * sin(rand() % (int)(2 * 3.14159f));
+	}
+
+	travel(entity, entPos);
 	checkChunkForOtherEntities(entity, map);
 }
 
@@ -153,12 +155,20 @@ void aiUpdate()
 {
 	while (1)
 	{
-	
 		for (auto it = hashedMaps.begin(); it != hashedMaps.end(); it++)
 		{
 			
 			//recalculate map chunks
 			it->second.localMapChunksLiving.clear();
+
+			//if player pos map index is same as current looping map index
+			sf::Vector2i pPos = getCurrentTileMapPos(player.getPos());
+			if (it->first == std::pair<int,int>{pPos.x, pPos.y})
+			{
+				//addObjectToChunkMap(player, it->second);
+			}
+
+			
 			addObjectToChunkMap(player, it->second);
 			for (int a = 0; a < it->second.fauna.size(); a++)
 			{
@@ -176,7 +186,6 @@ void aiUpdate()
 				simulate(ent[i], it->second);
 			}			
 		}
-		//print("ai");
-		sf::sleep(sf::seconds(0.5f));
+		sf::sleep(sf::seconds(0.1f));
 	}
 }

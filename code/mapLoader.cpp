@@ -9,7 +9,7 @@
 #include "updateAI.h"
 
 
-const int widthHeightInTiles = 25;
+const int widthHeightInTiles = 85;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 1;
@@ -42,8 +42,8 @@ void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& m
 	for (int i = 0; i < map.flora.size(); i++)
 	{
 		window.draw(map.flora[i].sprite);
-		map.flora[i].label.setPosition(map.flora[i].getPos());
-		//window.draw(map.flora[i].label);
+		map.flora[i].label.setPosition(sf::Vector2f(map.flora[i].getPos().x, map.flora[i].getPos().y -25));
+		window.draw(map.flora[i].label);
 
 		sf::Text chunkFlora;
 		sf::Vector2i locationChunk = getChunkIndex(map.flora[i].getPos());
@@ -71,8 +71,8 @@ void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& m
 			iter = 0;
 			viewLineList2.clear();
 		}
-		map.fauna[i].label.setPosition(map.fauna[i].getPos());
-		//window.draw(map.fauna[i].label);
+		map.fauna[i].label.setPosition(sf::Vector2f(map.fauna[i].getPos().x, map.fauna[i].getPos().y - 25));
+		window.draw(map.fauna[i].label);
 		sf::CircleShape circle(map.fauna[i].viewRange);
 		circle.setOrigin(circle.getRadius() , circle.getRadius() );
 		circle.setPosition(map.fauna[i].getPos());
@@ -106,6 +106,7 @@ void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& m
 
 sf::Texture m_tileset;
 
+//map squares of tiles
 std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps(100000);
 void addToMapIfNotFound(int x, int y)
 {
@@ -120,7 +121,7 @@ void addToMapIfNotFound(int x, int y)
 }
 
 
-int calcChunkMap(sf::Vector2f & obj)
+int calcChunkMap(sf::Vector2f obj)
 {
 	int posx = (obj.x);
 	int posy = (obj.y);
@@ -162,6 +163,17 @@ void addObjectToChunkMap(livingEntity& obj, Map& map) {
 	if (chunkBottom - posy <= threshold) sideInfo.bottom = true;
 
 	obj.sideOfChunk = sideInfo;
+}
+
+sf::Vector2i getCurrentTileMapPos(sf::Vector2f pos)
+{
+	float x = pos.x;
+	float y = pos.y;
+
+	float tripBoundsy = (y / (mapSize));
+	float tripBoundsx = (x / (mapSize));
+
+	return sf::Vector2i(static_cast<int>(std::floor(y / mapSize)), static_cast<int>(std::floor(x / mapSize)));
 }
 
 
@@ -302,8 +314,8 @@ livingEntity tsheep;
 int entityCounter = 0;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
-	int grassCount = 10;
-	int sheepCount = 2;
+	int grassCount = 60;
+	int sheepCount = 6;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{		
