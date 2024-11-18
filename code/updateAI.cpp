@@ -12,14 +12,9 @@ void initAi()
 
 void inViewCheck(livingEntity& entity, Map& map, std::vector<livingEntity*>& chunkedEntities, const int& i)
 {
-	if (entity.viewRange >= distance(chunkedEntities[i]->getPos(), entity.getPos()) - (chunkedEntities[i]->sprite.getLocalBounds().width/2))
+	if (entity.viewRange >= distance(chunkedEntities[i]->getPos(), entity.getPos()) - (entity.sprite.getLocalBounds().width/2))
 	{
 		auto it = std::find(entity.knownEntities.begin(), entity.knownEntities.end(), chunkedEntities[i]);
-
-		if (debug)
-		{
-			std::cout << entity.name << " pos: " << entity.getPos().x << "," << entity.getPos().y << "  " << chunkedEntities[i]->name << " targetPos: " << chunkedEntities[i]->getPos().x << "," << chunkedEntities[i]->getPos().y << std::endl;
-		}
 		
 		if (it == entity.knownEntities.end())
 		{
@@ -36,16 +31,17 @@ void loopChunks(livingEntity& entity, Map& map, const int & offX, const int & of
 	sf::Vector2f offedPos((x ) + (float)(offX * cellSize), (y) + (float)(offY * cellSize));
 
 	std::vector<livingEntity*>& chunkedEntities = map.localMapChunksLiving[calcChunkMap(offedPos)];
-
+	
 	for (int i = 0; i < chunkedEntities.size(); i++)
 	{
 		if (chunkedEntities[i]->name != entity.name)
 		{
+			
 			if (debug)
 			{
 				sf::Lock lock(lineMutexDebug);
 
-				//viewLineList.clear();
+				
 				sf::VertexArray line(sf::Lines, 2);
 
 				line[0].position = entity.getPos(); // Start point
@@ -54,6 +50,7 @@ void loopChunks(livingEntity& entity, Map& map, const int & offX, const int & of
 				line[1].color = sf::Color::Blue;
 
 				//viewLineList.push_back(line);
+				
 				viewLineList2.push_back(line);
 			}
 

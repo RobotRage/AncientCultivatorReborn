@@ -19,7 +19,7 @@ public:
     sf::Sprite sprite;
     std::vector<sf::Texture> moveAnim;     // Animation textures for movement
     std::vector<sf::Texture> defaultAnim;  // Animation textures for default state
-    ChunkSideInfo sideOfChunk;
+
     std::vector<int> lst;
     
     sf::Text label;

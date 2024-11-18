@@ -15,7 +15,7 @@ const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 1;
 int additionalDimensions = 0;
 
-const int cellSize = 100; // chunks
+const int cellSize = mapSize/12; // chunks
 
 sf::Vector2i getChunkIndex(const sf::Vector2f pos)
 {
@@ -35,7 +35,7 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const M
 	}
 }
 
-int iter = 0;
+
 void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& map)
 {
 	
@@ -62,15 +62,10 @@ void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& m
 		
 		for (int j = 0; j < viewLineList2.size(); j++)
 		{
-			window.draw(viewLineList2[j]);
+			//window.draw(viewLineList2[j]);
 		}
 
-		iter++;
-		if (iter > 200)
-		{
-			iter = 0;
-			viewLineList2.clear();
-		}
+
 		map.fauna[i].label.setPosition(sf::Vector2f(map.fauna[i].getPos().x, map.fauna[i].getPos().y - 25));
 		window.draw(map.fauna[i].label);
 		sf::CircleShape circle(map.fauna[i].viewRange);
@@ -145,24 +140,6 @@ void addObjectToChunkMap(livingEntity& obj, Map& map) {
 
 	map.localMapChunksLiving[hashKey].push_back(&obj);
 
-	// Calculate relative position within the chunk
-	float chunkLeft = cellX * cellSize;
-	float chunkRight = chunkLeft + cellSize;
-	float chunkTop = cellY * cellSize;
-	float chunkBottom = chunkTop + cellSize;
-
-
-
-	// Determine which sides the object is near
-	ChunkSideInfo sideInfo;
-	const float threshold = cellSize/3.0f; 
-
-	if (posx - chunkLeft <= threshold) sideInfo.left = true;
-	if (chunkRight - posx <= threshold) sideInfo.right = true;
-	if (posy - chunkTop <= threshold) sideInfo.top = true;
-	if (chunkBottom - posy <= threshold) sideInfo.bottom = true;
-
-	obj.sideOfChunk = sideInfo;
 }
 
 sf::Vector2i getCurrentTileMapPos(sf::Vector2f pos)
