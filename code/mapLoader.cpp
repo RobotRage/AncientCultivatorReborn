@@ -9,13 +9,18 @@
 #include "updateAI.h"
 
 
-
 const int widthHeightInTiles = 25;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 1;
 int additionalDimensions = 0;
 
+const int cellSize = 100; // chunks
+
+sf::Vector2i getChunkIndex(const sf::Vector2f pos)
+{
+	return sf::Vector2i((int)floor(((pos.x) / cellSize)), (int)floor(((pos.y) / cellSize)));
+}
 
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const Map& map)
 {
@@ -31,15 +36,23 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const M
 }
 
 int iter = 0;
-void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, Map& map)
+void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& map)
 {
+	
 	for (int i = 0; i < map.flora.size(); i++)
 	{
 		window.draw(map.flora[i].sprite);
 		map.flora[i].label.setPosition(map.flora[i].getPos());
-		window.draw(map.flora[i].label);
+		//window.draw(map.flora[i].label);
 
+		sf::Text chunkFlora;
+		sf::Vector2i locationChunk = getChunkIndex(map.flora[i].getPos());
+		chunkFlora.setFont(font);
+		chunkFlora.setString(std::to_string(locationChunk.x) + "," + std::to_string(locationChunk.y));
+		chunkFlora.setPosition(map.flora[i].getPos());
+		window.draw(chunkFlora);
 	}
+
 	for (int i = 0; i < map.fauna.size(); i++)
 	{
 		sf::Color sightCol = { 255,255,255,150 };
@@ -51,6 +64,7 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, M
 		{
 			window.draw(viewLineList2[j]);
 		}
+
 		iter++;
 		if (iter > 200)
 		{
@@ -58,7 +72,7 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, M
 			viewLineList2.clear();
 		}
 		map.fauna[i].label.setPosition(map.fauna[i].getPos());
-		window.draw(map.fauna[i].label);
+		//window.draw(map.fauna[i].label);
 		sf::CircleShape circle(map.fauna[i].viewRange);
 		circle.setOrigin(circle.getRadius() , circle.getRadius() );
 		circle.setPosition(map.fauna[i].getPos());
@@ -72,7 +86,22 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, M
 		}
 		circle.setFillColor(sightCol);
 		window.draw(circle);
+
+		sf::Text chunkFuna;
+		sf::Vector2i locationChunk = getChunkIndex(map.fauna[i].getPos());
+		chunkFuna.setFont(font);
+		chunkFuna.setString(std::to_string(locationChunk.x) + "," + std::to_string(locationChunk.y));
+		chunkFuna.setPosition(map.fauna[i].getPos());
+		window.draw(chunkFuna);
 	}
+
+	sf::Text chunk;
+	sf::Vector2i playerChunk = getChunkIndex(player.getPos());
+	chunk.setFont(font);
+	chunk.setString(std::to_string(playerChunk.x) + "," + std::to_string(playerChunk.y));
+	chunk.setPosition(player.getPos());
+
+	window.draw(chunk);
 }
 
 sf::Texture m_tileset;
@@ -89,27 +118,28 @@ void addToMapIfNotFound(int x, int y)
 		hashedMaps.emplace(p,map);
 	}
 }
-const int cellSize = mapSize;
+
+
 int calcChunkMap(sf::Vector2f & obj)
 {
 	int posx = (obj.x);
 	int posy = (obj.y);
-	int moddedx = posx % mapSize;
-	int moddedy = posy % mapSize;
+	//int moddedx = posx % mapSize;
+	//int moddedy = posy % mapSize;
 
-	int cellX = (int)floor((moddedx / cellSize));
-	int cellY = (int)floor((moddedy / cellSize));
+	int cellX = (int)floor((posx / cellSize));
+	int cellY = (int)floor((posy / cellSize));
 	return  cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
 }
 
 void addObjectToChunkMap(livingEntity& obj, Map& map) {	
 	int posx = (obj.sprite.getPosition().x );
 	int posy = (obj.sprite.getPosition().y );
-	int moddedx = posx % mapSize;
-	int moddedy = posy % mapSize;
+	//int moddedx = posx % mapSize;
+	//int moddedy = posy % mapSize;
 
-	int cellX = (int)floor((moddedx / cellSize));
-	int cellY = (int)floor((moddedy / cellSize));
+	int cellX = (int)floor((posx / cellSize));
+	int cellY = (int)floor((posy / cellSize));
 	int hashKey = cellX * 73856093 ^ cellY * 19349663; // Hash function for 2D coordinates
 
 	map.localMapChunksLiving[hashKey].push_back(&obj);
@@ -126,10 +156,10 @@ void addObjectToChunkMap(livingEntity& obj, Map& map) {
 	ChunkSideInfo sideInfo;
 	const float threshold = cellSize/3.0f; 
 
-	if (moddedx - chunkLeft <= threshold) sideInfo.left = true;
-	if (chunkRight - moddedx <= threshold) sideInfo.right = true;
-	if (moddedy - chunkTop <= threshold) sideInfo.top = true;
-	if (chunkBottom - moddedy <= threshold) sideInfo.bottom = true;
+	if (posx - chunkLeft <= threshold) sideInfo.left = true;
+	if (chunkRight - posx <= threshold) sideInfo.right = true;
+	if (posy - chunkTop <= threshold) sideInfo.top = true;
+	if (chunkBottom - posy <= threshold) sideInfo.bottom = true;
 
 	obj.sideOfChunk = sideInfo;
 }

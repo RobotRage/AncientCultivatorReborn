@@ -10,7 +10,7 @@ extern const int widthHeightInTiles;
 extern const int tilePixelSize;
 extern const int mapSize;
 extern const int fullWorldDimensions;
-
+extern const int cellSize; // chunks
 //seperate maps sections into chunks to be loaded in and out
 
 class Map

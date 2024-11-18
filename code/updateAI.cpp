@@ -32,7 +32,7 @@ void loopChunks(livingEntity& entity, Map& map, const int & offX, const int & of
 {
 	int x = entity.getPos().x;
 	int y = entity.getPos().y;
-	sf::Vector2f offedPos((x ) + (float)(offX * mapSize), (y) + (float)(offY * mapSize));
+	sf::Vector2f offedPos((x ) + (float)(offX * cellSize), (y) + (float)(offY * cellSize));
 
 	std::vector<livingEntity*>& chunkedEntities = map.localMapChunksLiving[calcChunkMap(offedPos)];
 
@@ -71,7 +71,7 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	//if (map.localMapChunksLiving.find(calcChunkMap(p)) != map.localMapChunksLiving.end()) // if simulation entity is in same chunk as other living ent
 	//{
 	
-	/*
+	
 			loopChunks(entity, map, -1, 1);
 		
 
@@ -97,7 +97,7 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 
 			loopChunks(entity, map, 0, 0);
 		
-		*/
+		/*
 		if (entity.sideOfChunk.left && entity.sideOfChunk.top)
 		{
 			loopChunks(entity, map, -1, 1);
@@ -133,7 +133,7 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 		else
 		{
 			loopChunks(entity, map, 0, 0);		
-		}
+		}*/
 	//}
 }
 
@@ -144,7 +144,7 @@ void travel()
 
 void simulate(livingEntity& entity, Map& map)
 {
-	entity.setPos(sf::Vector2f(entity.getPos().x + rand() % 40 - 20, entity.getPos().y + rand() % 40 - 20));
+	//entity.setPos(sf::Vector2f(entity.getPos().x + rand() % 40 - 20, entity.getPos().y + rand() % 40 - 20));
 	checkChunkForOtherEntities(entity, map);
 }
 
