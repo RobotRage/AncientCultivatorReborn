@@ -14,6 +14,8 @@ struct ChunkSideInfo {
 class baseEntity
 {
 public:
+    sf::Vector2i mapLocation;
+
     std::string name;
     int animFrame = 0;
     sf::Sprite sprite;
@@ -107,9 +109,6 @@ public:
     bool alive = true;
     bool entityMoving = false;
     int running = 1; // Multiplier for running speed
-
-
-
 
     // Variadic template constructor to initialize baseEntity
     template<typename... Paths>

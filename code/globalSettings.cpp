@@ -2,7 +2,7 @@
 #include "includes.h"
 #include <mutex>
 
-const bool debug = 1;
+bool debug = 0;
 
 const int screenx = 800;
 const int screeny = 650;

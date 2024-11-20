@@ -98,6 +98,12 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 		W = true;
 	}
 
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))
+	{
+		debug = !debug;
+		sleep(0.1f);
+	}
+
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num9))
 	{
 		

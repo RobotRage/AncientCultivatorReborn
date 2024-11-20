@@ -152,6 +152,7 @@ void aiUpdate()
 {
 	while (1)
 	{
+		
 		for (auto it = hashedMaps.begin(); it != hashedMaps.end(); it++)
 		{
 			
@@ -165,12 +166,43 @@ void aiUpdate()
 				//addObjectToChunkMap(player, it->second);
 			}
 
-			
+			//TODO add only to nearby
 			addObjectToChunkMap(player, it->second);
-			for (int a = 0; a < it->second.fauna.size(); a++)
+			bool breakCalc = false;
+			
+			do
 			{
-				addObjectToChunkMap(it->second.fauna[a], it->second);
-			}
+				
+				bool ok = true;
+				
+				for (int a = 0; a < it->second.fauna.size(); a++)
+				{
+					sf::Vector2i faunaPos = getCurrentTileMapPos(it->second.fauna[a].getPos());
+					if (faunaPos != it->second.fauna[a].mapLocation) // currentposition != saved position
+					{						
+						std::unique_lock<std::mutex> lock(entityMutex);
+						it->second.fauna[a].mapLocation = faunaPos;
+
+						addToMapIfNotFound(faunaPos.x, faunaPos.y);
+						hashedMaps[{faunaPos.x, faunaPos.y}].fauna.emplace_back(it->second.fauna[a]);	//put saved animal into hashed map
+
+
+						addObjectToChunkMap(it->second.fauna[a], hashedMaps[{faunaPos.x, faunaPos.y}]);
+
+						it->second.fauna.erase(it->second.fauna.begin() + a); //erase from list of animals
+			
+						
+						ok = false;
+						break;
+					}
+					else
+					{
+						addObjectToChunkMap(it->second.fauna[a], it->second);
+					}
+				}
+				if (ok) { breakCalc = true; }
+			} while (!breakCalc);
+
 
 			for (int a = 0; a < it->second.flora.size(); a++)
 			{
@@ -183,6 +215,6 @@ void aiUpdate()
 				simulate(ent[i], it->second);
 			}			
 		}
-		sf::sleep(sf::seconds(0.1f));
+		sf::sleep(sf::seconds(0.01f));
 	}
 }

@@ -64,6 +64,8 @@ struct KeyEqual {
 
 // localMapChunks only operates on hashedMaps
 
+extern std::mutex entityMutex;
+
 sf::Vector2i getChunkIndex(const sf::Vector2f pos);
 
 extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
@@ -75,4 +77,6 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const M
 void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, Map& map);
 void initMaps(livingEntity& player);
 sf::Vector2i getCurrentTileMapPos(sf::Vector2f pos);
+void recalcEnt(Map& map, sf::Vector2f& mapPos, livingEntity& ent, sf::Vector2f newPos);
+void addToMapIfNotFound(int x, int y);
 //void hotLoadMaps(livingEntity& player, sf::RenderWindow& window, sf::View& view);

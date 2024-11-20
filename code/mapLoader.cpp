@@ -9,26 +9,29 @@
 #include "updateAI.h"
 
 
-const int widthHeightInTiles = 85;
+const int widthHeightInTiles = 15;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 1;
 int additionalDimensions = 0;
 
-const int cellSize = mapSize/12; // chunks
+const int cellSize = tilePixelSize * 20; // chunks
 
 sf::Vector2i getChunkIndex(const sf::Vector2f pos)
 {
 	return sf::Vector2i((int)floor(((pos.x) / cellSize)), (int)floor(((pos.y) / cellSize)));
 }
 
+std::mutex entityMutex;
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const Map& map)
-{
+{	
 	for (int i = 0; i < map.flora.size(); i++)
 	{
 		window.draw(map.flora[i].sprite);
 		
 	}
+
+	std::unique_lock<std::mutex> lock(entityMutex);
 	for (int i = 0; i < map.fauna.size(); i++)
 	{
 		window.draw(map.fauna[i].sprite);
@@ -53,6 +56,7 @@ void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& m
 		window.draw(chunkFlora);
 	}
 
+	std::unique_lock<std::mutex> lock(entityMutex);
 	for (int i = 0; i < map.fauna.size(); i++)
 	{
 		sf::Color sightCol = { 255,255,255,150 };
@@ -62,9 +66,9 @@ void drawFloraFaunaDebug(sf::RenderWindow& window,  livingEntity& player, Map& m
 		
 		for (int j = 0; j < viewLineList2.size(); j++)
 		{
-			//window.draw(viewLineList2[j]);
+			window.draw(viewLineList2[j]);
 		}
-
+		if (i == 0) { viewLineList2.clear(); };
 
 		map.fauna[i].label.setPosition(sf::Vector2f(map.fauna[i].getPos().x, map.fauna[i].getPos().y - 25));
 		window.draw(map.fauna[i].label);
@@ -150,7 +154,7 @@ sf::Vector2i getCurrentTileMapPos(sf::Vector2f pos)
 	float tripBoundsy = (y / (mapSize));
 	float tripBoundsx = (x / (mapSize));
 
-	return sf::Vector2i(static_cast<int>(std::floor(y / mapSize)), static_cast<int>(std::floor(x / mapSize)));
+	return sf::Vector2i(static_cast<int>(std::floor(x / mapSize)), static_cast<int>(std::floor(y / mapSize)));
 }
 
 
@@ -164,11 +168,14 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	float x = player.sprite.getPosition().x;
 	float y = player.sprite.getPosition().y;
 
-	float tripBoundsy = (y / (mapSize));
 	float tripBoundsx = (x / (mapSize));
+	float tripBoundsy = (y / (mapSize));
+	
+	sf::Vector2i vecPos = getCurrentTileMapPos(player.getPos());
 
-	int indexy = static_cast<int>(std::floor(y / mapSize));
-	int indexx = static_cast<int>(std::floor(x / mapSize));
+	int indexx = vecPos.x;
+	int indexy = vecPos.y;
+	
 
 	//std::cout << "Player Map Pos-  X:" << indexx << "  Y:" << indexy << std::endl;
 
@@ -288,15 +295,23 @@ void setLabelFont(livingEntity& ent)
 livingEntity tgrass;
 livingEntity tsheep;
 
+void recalcEnt(Map& map, sf::Vector2f& mapPos, livingEntity & ent, sf::Vector2f newPos)
+{
+	ent.mapLocation = getCurrentTileMapPos(sf::Vector2f(mapPos.x, mapPos.y));
+	ent.sprite.setOrigin(ent.sprite.getLocalBounds().width / 2, ent.sprite.getLocalBounds().height / 2);
+	ent.setPos(newPos);
+	setLabelFont(ent);
+}
+
 int entityCounter = 0;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
-	int grassCount = 60;
-	int sheepCount = 6;
+	int grassCount = 10;
+	int sheepCount = 1;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{		
-		
+		tgrass.mapLocation = getCurrentTileMapPos(sf::Vector2f(pos.x, pos.y));
 		tgrass.name = "grass_" + std::to_string(entityCounter);
 		tgrass.sprite.setOrigin(tgrass.sprite.getLocalBounds().width / 2, tgrass.sprite.getLocalBounds().height / 2);
 		randFlora(map, pos, tgrass);
@@ -305,6 +320,7 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 	}
 	for (int i = 0; i < sheepCount; i++)
 	{			
+		tsheep.mapLocation = getCurrentTileMapPos(sf::Vector2f(pos.x, pos.y));
 		tsheep.name = "sheep_" + std::to_string(entityCounter);
 		tsheep.sprite.setOrigin(tsheep.sprite.getLocalBounds().width / 2, tsheep.sprite.getLocalBounds().height / 2);
 		randFauna(map, pos, tsheep);

@@ -7,7 +7,7 @@ extern const int screeny;
 extern const int playerDistFromCenterCamToTriggerMoveCam;
 extern sf::Font font;
 
-extern const bool debug;
+extern bool debug;
 
 extern sf::Mutex lineMutexDebug;
 extern std::vector<sf::VertexArray> viewLineList;
