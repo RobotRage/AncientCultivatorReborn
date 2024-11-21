@@ -131,10 +131,7 @@ void travel(livingEntity& entity, sf::Vector2f & entPos)
 
 void simulate(livingEntity& entity, Map& map)
 {
-	if (entity.name == "sheep_65")
-	{
-		int x = 1;
-	}
+
 	sf::Vector2f entPos = entity.getPos();
 
 	if ((entity.targetMove.x == 0 && entity.targetMove.y == 0) ||(round(entPos.x) == round(entity.targetMove.x) && round(entPos.y) == round(entity.targetMove.y)))
