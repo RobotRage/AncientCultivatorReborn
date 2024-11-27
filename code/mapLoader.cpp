@@ -12,15 +12,10 @@
 const int widthHeightInTiles = 35;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
-const int fullWorldDimensions = 1;
+const int fullWorldDimensions = 0;
 int additionalDimensions = 0;
 
 const int cellSize = tilePixelSize * 20; // chunks
-
-sf::Vector2i getChunkIndex(const sf::Vector2f pos)
-{
-	return sf::Vector2i((int)floor(((pos.x) / cellSize)), (int)floor(((pos.y) / cellSize)));
-}
 
 
 
@@ -72,9 +67,6 @@ sf::Vector2i getCurrentTileMapPos(sf::Vector2f pos)
 	float x = pos.x;
 	float y = pos.y;
 
-	float tripBoundsy = (y / (mapSize));
-	float tripBoundsx = (x / (mapSize));
-
 	return sf::Vector2i(static_cast<int>(std::floor(x / mapSize)), static_cast<int>(std::floor(y / mapSize)));
 }
 
@@ -100,7 +92,8 @@ void setLabelFont(livingEntity& ent)
 {
 	ent.label.setFont(font);
 	ent.label.setPosition(ent.getPos());
-	ent.label.setString(ent.name);
+	std::string str = ent.name;
+	ent.label.setString(str);
 }
 
 livingEntity tgrass;

@@ -66,7 +66,6 @@ struct KeyEqual {
 
 extern std::mutex entityMutex;
 
-sf::Vector2i getChunkIndex(const sf::Vector2f pos);
 
 extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
 int calcChunkMap(sf::Vector2f obj);

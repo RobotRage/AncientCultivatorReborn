@@ -161,7 +161,7 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, livingEntity& player, Map& ma
 		window.draw(map.flora[i].label);
 
 		sf::Text chunkFlora;
-		sf::Vector2i locationChunk = getChunkIndex(map.flora[i].getPos());
+		sf::Vector2i locationChunk = getCurrentTileMapPos(map.flora[i].getPos());
 		chunkFlora.setFont(font);
 		chunkFlora.setString(std::to_string(locationChunk.x) + "," + std::to_string(locationChunk.y));
 		chunkFlora.setPosition(map.flora[i].getPos());
@@ -199,7 +199,7 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, livingEntity& player, Map& ma
 		window.draw(circle);
 
 		sf::Text chunkFuna;
-		sf::Vector2i locationChunk = getChunkIndex(map.fauna[i].getPos());
+		sf::Vector2i locationChunk = getCurrentTileMapPos(map.fauna[i].getPos());
 		chunkFuna.setFont(font);
 		chunkFuna.setString(std::to_string(locationChunk.x) + "," + std::to_string(locationChunk.y));
 		chunkFuna.setPosition(map.fauna[i].getPos());
@@ -207,7 +207,7 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, livingEntity& player, Map& ma
 	}
 
 	sf::Text chunk;
-	sf::Vector2i playerChunk = getChunkIndex(player.getPos());
+	sf::Vector2i playerChunk = getCurrentTileMapPos(player.getPos());
 	chunk.setFont(font);
 	chunk.setString(std::to_string(playerChunk.x) + "," + std::to_string(playerChunk.y));
 	chunk.setPosition(player.getPos());
