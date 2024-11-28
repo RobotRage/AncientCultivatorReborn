@@ -11,4 +11,4 @@ std::vector<int> strVecToIntVec(std::vector<std::string> strLst);
 std::vector<std::string> splitString(const std::string str, char delimiter);
 void print(std::string s);
 void sleep(float seconds);
-
+double toDeg(double rad);

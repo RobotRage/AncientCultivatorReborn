@@ -3,6 +3,8 @@
 #include "mapLoader.h"
 #include "globalSettings.h"
 #include <utility>
+
+
 //called from mapLoader
 void initAi()
 {
@@ -129,6 +131,8 @@ void travel(livingEntity& entity, sf::Vector2f & entPos)
 	entity.setPos(sf::Vector2f((entity.getPos().x) + stepX, (entity.getPos().y + stepY)));
 }
 
+
+
 void simulate(livingEntity& entity, Map& map)
 {
 
@@ -136,8 +140,10 @@ void simulate(livingEntity& entity, Map& map)
 
 	if ((entity.targetMove.x == 0 && entity.targetMove.y == 0) ||(round(entPos.x) == round(entity.targetMove.x) && round(entPos.y) == round(entity.targetMove.y)))
 	{
-		entity.targetMove.x = entPos.x + entity.viewRange * cos(rand() % (int)(2 * 3.14159f));
-		entity.targetMove.y = entPos.y + entity.viewRange * sin(rand() % (int)(2 * 3.14159f));
+		entity.targetMove.x = entPos.x + entity.viewRange * cos(rand() % (int)(2 * Pi));
+		entity.targetMove.y = entPos.y + entity.viewRange * sin(rand() % (int)(2 * Pi));
+
+		entity.sprite.setRotation(toDeg(atan2(entity.targetMove.y - entPos.y, entity.targetMove.x - entPos.x))); // atan2 takes y as first param (y,x)			
 	}
 
 	travel(entity, entPos);

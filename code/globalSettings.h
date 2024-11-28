@@ -1,6 +1,6 @@
 #pragma once
 #include "includes.h"
-
+#define Pi 3.14159265359f
 extern const int screenx;
 extern const int screeny;
 

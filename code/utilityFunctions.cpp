@@ -5,6 +5,35 @@
 #include "entityObject.h"
 #include "mapLoader.h"
 
+int dot(int u1, int u2, int v1, int v2)
+{
+    return ((u1 * v1) + (u2 * v2));
+}
+
+int magnitude(int x, int y)
+{
+    x *= x;
+    y *= y;
+
+    return sqrt(x + y);
+}
+
+// angle against horizontal axis
+int getVectorAngle(int u1, int u2, int v1, int v2)
+{
+    int numerator = dot(u1, u2, v1, v2);
+    int denominator = magnitude(u1, u2) * magnitude(v1, v2);
+
+    float result = ((float)numerator / (float)denominator);
+    int deg = acos(result) * (180 / Pi);
+    return deg;
+}
+
+double toDeg(double rad)
+{
+    return rad * (180 / Pi);
+}
+
 void sleep(float seconds)
 {
     sf::sleep(sf::seconds(seconds));;
