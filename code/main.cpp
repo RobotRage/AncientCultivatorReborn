@@ -23,8 +23,8 @@ int main()
     sf::Clock updateClock;   
     sf::Clock animateClock; 
 
-    const float updateInterval = 1.0f / 200.0f;  // 1/x = x updates per second
-    const float animateInterval = 1.0f / 10.0f; 
+    const float updateInterval = UPDATE_RATE;  // 1/x = x updates per second
+    const float animateInterval = (UPDATE_RATE) * 10.0f;
 
     
     // Main game loop

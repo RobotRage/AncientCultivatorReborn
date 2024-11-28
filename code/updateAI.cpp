@@ -50,8 +50,6 @@ void loopChunks(livingEntity& entity, Map& map, const int & offX, const int & of
 				line[0].color = sf::Color::Red;
 				line[1].position = chunkedEntities[i]->getPos(); // End point
 				line[1].color = sf::Color::Blue;
-
-				//viewLineList.push_back(line);
 				
 				viewLineList2.push_back(line);
 			}
@@ -124,9 +122,11 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 void travel(livingEntity& entity, sf::Vector2f & entPos, float & timeSinceFrame)
 {
 	float dist = distance(entPos, sf::Vector2f(entity.targetMove.x, entity.targetMove.y));
-	float multiplier = 20;
-	float stepX = ((entity.targetMove.x - entPos.x) / dist) * timeSinceFrame * multiplier;
-	float stepY = ((entity.targetMove.y - entPos.y) / dist) * timeSinceFrame * multiplier;
+	float multiplier = 10;
+
+	//multiply by time since last frame to make uniform movement
+	float stepX = ((entity.targetMove.x - entPos.x) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
+	float stepY = ((entity.targetMove.y - entPos.y) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
 
 	entity.setPos(sf::Vector2f((entity.getPos().x) + stepX, (entity.getPos().y + stepY)));
 }
@@ -138,6 +138,7 @@ void simulate(livingEntity& entity, Map& map, float & timeSinceFrame)
 
 	sf::Vector2f entPos = entity.getPos();
 
+	//if no target or if entity has reached destination
 	if ((entity.targetMove.x == 0 && entity.targetMove.y == 0) ||(round(entPos.x) == round(entity.targetMove.x) && round(entPos.y) == round(entity.targetMove.y)))
 	{
 		entity.targetMove.x = entPos.x + entity.viewRange * cos(rand() % (int)(2 * Pi));
@@ -151,11 +152,12 @@ void simulate(livingEntity& entity, Map& map, float & timeSinceFrame)
 }
 
 sf::Clock aiUpdateClock;
-const float aiInterval = 1.0f / 200.0f;  // 1/x = x updates per second
+const float aiInterval = UPDATE_RATE;
 void aiUpdate()
 {
 	while (1)
 	{
+		//time.deltatime in unity i think
 		float timeSinceFrame = aiUpdateClock.getElapsedTime().asSeconds();
 		if (timeSinceFrame < aiInterval)
 		{						
@@ -169,38 +171,37 @@ void aiUpdate()
 		for (auto it = hashedMaps.begin(); it != hashedMaps.end(); it++)
 		{
 			
-			//recalculate map chunks
+			//clear to recalculate map chunks
 			it->second.localMapChunksLiving.clear();
 
-			//if player pos map index is same as current looping map index
+			//if player pos map index is same as current looping map index make the player visible on the chunkmap 
 			sf::Vector2i pPos = getCurrentTileMapPos(player.getPos());
 			if (it->first == std::pair<int,int>{pPos.x, pPos.y})
 			{
 				addObjectToChunkMap(player, it->second);
 			}
-
 			
-			bool ok = 1;
-			do {
+			//while loop to re calculate for each element of chunkmap
+			bool ok = 0;
+			while (!ok)
+			{
 				ok = 1;
+				//need to recalculate each element of fauna's map position since they are moving entities
 				for (int a = 0; a < it->second.fauna.size(); a++)
 				{
 					sf::Vector2i faunaPos = getCurrentTileMapPos(it->second.fauna[a].getPos());
 					if (hashedMaps.find({ faunaPos.x, faunaPos.y }) == hashedMaps.end()) { continue; } //dont let entities get added to uncreated maps
 					if (faunaPos != it->second.fauna[a].mapLocation) // currentposition != saved position
 					{
+						#pragma region generateNewChunkMapForObject						
 						std::unique_lock<std::mutex> lock(entityMutex);
 						it->second.fauna[a].mapLocation = faunaPos;
-
 						hashedMaps[{faunaPos.x, faunaPos.y}].fauna.push_back(it->second.fauna[a]);	//put saved animal into hashed map
-
-
 						addObjectToChunkMap(it->second.fauna[a], hashedMaps[{faunaPos.x, faunaPos.y}]);
-
 						it->second.fauna.erase(it->second.fauna.begin() + a); //erase from list of animals
+						#pragma endregion
 
 						ok = 0;
-
 						break;
 					}
 					else
@@ -208,10 +209,9 @@ void aiUpdate()
 						addObjectToChunkMap(it->second.fauna[a], it->second);
 					}
 				}		
-			} while (!ok);
+			} 
 
-
-
+			//non moving entities are expected never to change maps 
 			for (int a = 0; a < it->second.flora.size(); a++)
 			{
 				addObjectToChunkMap(it->second.flora[a], it->second);

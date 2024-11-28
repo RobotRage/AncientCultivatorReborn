@@ -1,6 +1,7 @@
 #pragma once
 #include "includes.h"
 #define Pi 3.14159265359f
+#define UPDATE_RATE (1.0f / 144.0f) // 1/x = x updates per second
 extern const int screenx;
 extern const int screeny;
 

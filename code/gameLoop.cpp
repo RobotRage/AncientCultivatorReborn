@@ -33,15 +33,12 @@ void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& play
 	float dist = distance(centerCam, playerPos);
 	if (dist > playerDistFromCenterCamToTriggerMoveCam)
 	{
-
-		//unitVector gives direction but moves only 1 pixel at a time
 		sf::Vector2f unitVec = roundVectorToWhole(getUnitVector(centerCam, playerPos));
 
 		//scale unit vector with move speed to move camera with bigger steps
 		unitVec.x = unitVec.x * player.getSpeed();
 		unitVec.y = unitVec.y * player.getSpeed();
 
-		//move the camera in the direction of the vector from the center of the screen pointing to the player and set the view
 		camera.move(unitVec);
 		window.setView(camera);
 	}
