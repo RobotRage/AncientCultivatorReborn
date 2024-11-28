@@ -121,19 +121,19 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	//}
 }
 
-void travel(livingEntity& entity, sf::Vector2f & entPos)
+void travel(livingEntity& entity, sf::Vector2f & entPos, float & timeSinceFrame)
 {
 	float dist = distance(entPos, sf::Vector2f(entity.targetMove.x, entity.targetMove.y));
-
-	float stepX = (entity.targetMove.x - entPos.x) / dist;
-	float stepY = (entity.targetMove.y - entPos.y) / dist;
+	float multiplier = 20;
+	float stepX = ((entity.targetMove.x - entPos.x) / dist) * timeSinceFrame * multiplier;
+	float stepY = ((entity.targetMove.y - entPos.y) / dist) * timeSinceFrame * multiplier;
 
 	entity.setPos(sf::Vector2f((entity.getPos().x) + stepX, (entity.getPos().y + stepY)));
 }
 
 
 
-void simulate(livingEntity& entity, Map& map)
+void simulate(livingEntity& entity, Map& map, float & timeSinceFrame)
 {
 
 	sf::Vector2f entPos = entity.getPos();
@@ -146,16 +146,26 @@ void simulate(livingEntity& entity, Map& map)
 		entity.sprite.setRotation(toDeg(atan2(entity.targetMove.y - entPos.y, entity.targetMove.x - entPos.x))); // atan2 takes y as first param (y,x)			
 	}
 
-	travel(entity, entPos);
+	travel(entity, entPos, timeSinceFrame);
 	checkChunkForOtherEntities(entity, map);
 }
 
-
+sf::Clock aiUpdateClock;
+const float aiInterval = 1.0f / 200.0f;  // 1/x = x updates per second
 void aiUpdate()
 {
 	while (1)
 	{
-		
+		float timeSinceFrame = aiUpdateClock.getElapsedTime().asSeconds();
+		if (timeSinceFrame < aiInterval)
+		{						
+			continue;
+		}
+		else
+		{
+			aiUpdateClock.restart();
+		}
+
 		for (auto it = hashedMaps.begin(); it != hashedMaps.end(); it++)
 		{
 			
@@ -168,8 +178,6 @@ void aiUpdate()
 			{
 				addObjectToChunkMap(player, it->second);
 			}
-
-
 
 			
 			bool ok = 1;
@@ -212,9 +220,8 @@ void aiUpdate()
 			std::vector<livingEntity>& ent = it->second.fauna; //only simulate for fauna
 			for (int i = 0; i < ent.size(); i++)
 			{
-				simulate(ent[i], it->second);
+				simulate(ent[i], it->second, timeSinceFrame);
 			}			
 		}
-		sf::sleep(sf::seconds(0.01f));
 	}
 }
