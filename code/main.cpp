@@ -37,9 +37,10 @@ int main()
                 window.close();
         }
 
-        if (updateClock.getElapsedTime().asSeconds() >= updateInterval)
+        float mainUpdateLastFrame = updateClock.getElapsedTime().asSeconds();
+        if (mainUpdateLastFrame >= updateInterval)
         {
-            update(camera, window, player);
+            update(camera, window, player, mainUpdateLastFrame);
             updateClock.restart();
         }
 

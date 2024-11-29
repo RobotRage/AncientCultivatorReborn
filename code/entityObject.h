@@ -103,7 +103,7 @@ public:
 
     std::vector<baseEntity*> knownEntities;
 
-    sf::Vector2i targetMove{ 0,0 };
+    sf::Vector2i targetMove{ 0 ,0};
 
     //states
     bool alive = true;

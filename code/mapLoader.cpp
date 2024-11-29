@@ -9,7 +9,7 @@
 #include "updateAI.h"
 
 
-const int widthHeightInTiles = 55;
+const int widthHeightInTiles = 155;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 0;
@@ -111,7 +111,7 @@ int entityCounter = 0;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
 	int grassCount = 10;
-	int sheepCount = 100;
+	int sheepCount = 300;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{		

@@ -124,9 +124,20 @@ void travel(livingEntity& entity, sf::Vector2f & entPos, float & timeSinceFrame)
 	float dist = distance(entPos, sf::Vector2f(entity.targetMove.x, entity.targetMove.y));
 	float multiplier = 10;
 
+	sf::Vector2f target{ (float)entity.targetMove.x, (float)entity.targetMove.y };
+
 	//multiply by time since last frame to make uniform movement
 	float stepX = ((entity.targetMove.x - entPos.x) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
 	float stepY = ((entity.targetMove.y - entPos.y) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
+
+	//if no target or if entity has reached destination
+	if ((entity.targetMove.x == 0 && entity.targetMove.y == 0) || (distance(entPos, target) <= ((stepX+stepY)*5)  ))
+	{
+		entity.targetMove.x = entPos.x + entity.viewRange * cos(rand() % (int)(2 * Pi));
+		entity.targetMove.y = entPos.y + entity.viewRange * sin(rand() % (int)(2 * Pi));
+
+		entity.sprite.setRotation(toDeg(atan2(entity.targetMove.y - entPos.y, entity.targetMove.x - entPos.x))); // atan2 takes y as first param (y,x)			
+	}
 
 	entity.setPos(sf::Vector2f((entity.getPos().x) + stepX, (entity.getPos().y + stepY)));
 }
@@ -136,17 +147,9 @@ void travel(livingEntity& entity, sf::Vector2f & entPos, float & timeSinceFrame)
 void simulate(livingEntity& entity, Map& map, float & timeSinceFrame)
 {
 
-	sf::Vector2f entPos = entity.getPos();
+	sf::Vector2f entPos = entity.getPos();	
 
-	//if no target or if entity has reached destination
-	if ((entity.targetMove.x == 0 && entity.targetMove.y == 0) ||(round(entPos.x) == round(entity.targetMove.x) && round(entPos.y) == round(entity.targetMove.y)))
-	{
-		entity.targetMove.x = entPos.x + entity.viewRange * cos(rand() % (int)(2 * Pi));
-		entity.targetMove.y = entPos.y + entity.viewRange * sin(rand() % (int)(2 * Pi));
-
-		entity.sprite.setRotation(toDeg(atan2(entity.targetMove.y - entPos.y, entity.targetMove.x - entPos.x))); // atan2 takes y as first param (y,x)			
-	}
-
+	
 	travel(entity, entPos, timeSinceFrame);
 	checkChunkForOtherEntities(entity, map);
 }

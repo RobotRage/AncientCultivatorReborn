@@ -4,7 +4,7 @@
 #include "entityObject.h"
 
 void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& player);
-void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player);
+void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer);
 void draw(sf::RenderWindow& window, livingEntity& player, sf::View& camera);
 void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player);
 void animate(livingEntity& player);

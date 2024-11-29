@@ -10,21 +10,21 @@
 #include <time.h>      
 
 #pragma region forwardDeclarations
-bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player);
-void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& player);
+bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer);
+void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer);
 #pragma endregion
 
 
 
 //main thread (ai thread in updateAI.cpp)
-void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
+void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer)
 {
-	player.entityMoving = userInput(camera, window, player);
-	if (player.entityMoving) { camMoveCheck(camera, window,player); } // only check camera bounds if player is inputting movement
+	player.entityMoving = userInput(camera, window, player, lastFrameTimer);
+	if (player.entityMoving) { camMoveCheck(camera, window,player, lastFrameTimer); } // only check camera bounds if player is inputting movement
 }
-
+const float multiplierForMovement = 25;
 // move the camera in the direction the player is moving if they are outside a certain distance of the center of the screen
-void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
+void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer)
 {
 
 	sf::Vector2f centerCam = camera.getCenter();
@@ -39,7 +39,7 @@ void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& play
 		unitVec.x = unitVec.x * player.getSpeed();
 		unitVec.y = unitVec.y * player.getSpeed();
 
-		camera.move(unitVec);
+		camera.move(unitVec * (lastFrameTimer * multiplierForMovement));
 		window.setView(camera);
 	}
 }
@@ -48,7 +48,7 @@ void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& play
 // WASD & Arrow keys to move
 // L/Rshift to run
 // 0 and 9 to zoom cam
-bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
+bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer)
 {
 #pragma region 8D movement input
 
@@ -59,38 +59,39 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
 	{
-		player.running = 2;
+		player.running = 3;
 	}
 	else
 	{
 		player.running = 1;
 	}
 
+	
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left) || sf::Keyboard::isKeyPressed(sf::Keyboard::A))
 	{
 		change.x = change.x - 1;
-		player.moveEntity(pos, change * (float)player.getSpeed());
+		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
 		player.sprite.setRotation(270);
 		A = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
 		change.x = change.x + 1;
-		player.moveEntity(pos, change * (float)player.getSpeed());
+		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
 		player.sprite.setRotation(90);
 		D = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
 		change.y = change.y + 1;
-		player.moveEntity(pos, change * (float)player.getSpeed());
+		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
 		player.sprite.setRotation(180);
 		S = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
 		change.y = change.y - 1;
-		player.moveEntity(pos, change * (float)player.getSpeed());
+		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
 		player.sprite.setRotation(0);
 		W = true;
 	}
