@@ -65,79 +65,53 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	int x = entity.getPos().x;
 	int y = entity.getPos().y;
 	sf::Vector2f p(x % mapSize, y % mapSize);
-	//if (map.localMapChunksLiving.find(calcChunkMap(p)) != map.localMapChunksLiving.end()) // if simulation entity is in same chunk as other living ent
-	//{
-	
-	
-			loopChunks(entity, map, -1, 1);
-			loopChunks(entity, map, 1, 1);
-			loopChunks(entity, map, 1, -1);
-			loopChunks(entity, map, -1, -1);
-			loopChunks(entity, map, -1, 0);
-			loopChunks(entity, map, 1, 0);
-			loopChunks(entity, map, 0, -1);
-			loopChunks(entity, map, 0, 1);
-			loopChunks(entity, map, 0, 0);
-		
-		/*
-		if (entity.sideOfChunk.left && entity.sideOfChunk.top)
-		{
-			loopChunks(entity, map, -1, 1);
-		}
-		else if (entity.sideOfChunk.top && entity.sideOfChunk.right)
-		{
-			loopChunks(entity, map, 1, 1);
-		}
-		else if (entity.sideOfChunk.right && entity.sideOfChunk.bottom)
-		{
-			loopChunks(entity, map, 1, -1);
-		}
-		else if (entity.sideOfChunk.bottom && entity.sideOfChunk.left)
-		{
-			loopChunks(entity, map, -1, -1);
-		}
-		else if (entity.sideOfChunk.left)
-		{
-			loopChunks(entity, map, -1, 0);
-		}
-		else if (entity.sideOfChunk.right)
-		{
-			loopChunks(entity, map, 1, 0);
-		}
-		else if (entity.sideOfChunk.bottom)
-		{
-			loopChunks(entity, map, 0, -1);
-		}
-		else if (entity.sideOfChunk.top)
-		{
-			loopChunks(entity, map, 0, 1);
-		}
-		else
-		{
-			loopChunks(entity, map, 0, 0);		
-		}*/
-	//}
-}
 
-void travel(livingEntity& entity, sf::Vector2f & entPos, float & timeSinceFrame)
+	
+	loopChunks(entity, map, -1, 1);
+	loopChunks(entity, map, 1, 1);
+	loopChunks(entity, map, 1, -1);
+	loopChunks(entity, map, -1, -1);
+	loopChunks(entity, map, -1, 0);
+	loopChunks(entity, map, 1, 0);
+	loopChunks(entity, map, 0, -1);
+	loopChunks(entity, map, 0, 1);
+	loopChunks(entity, map, 0, 0);
+		
+		
+}
+sf::Clock aiUpdateClock;
+void travel(livingEntity& entity, float & timeSinceFrame)
 {
-	float dist = distance(entPos, sf::Vector2f(entity.targetMove.x, entity.targetMove.y));
+	
+	sf::Vector2f posUpdated = entity.getPos();
+	float dist = distance(posUpdated, sf::Vector2f(entity.targetMove.x, entity.targetMove.y));
 	float multiplier = 10;
 
 	sf::Vector2f target{ (float)entity.targetMove.x, (float)entity.targetMove.y };
 
 	//multiply by time since last frame to make uniform movement
-	float stepX = ((entity.targetMove.x - entPos.x) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
-	float stepY = ((entity.targetMove.y - entPos.y) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
+	float stepX = ((entity.targetMove.x - posUpdated.x) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
+	float stepY = ((entity.targetMove.y - posUpdated.y) / dist) * timeSinceFrame * multiplier * entity.getSpeed();
+	
+	if (abs(target.x - posUpdated.x) <= abs(stepX) && abs(target.y - posUpdated.y) <= abs(stepY) || (entity.targetMove.x == 0 && entity.targetMove.y == 0))
+	{
+
+		sf::Vector2f targ = posUpdated;
+		if (entity.targetMove.x != 0 && entity.targetMove.y != 0)
+		{
+			targ = { (float)entity.targetMove.x, (float)entity.targetMove.y };
+			entity.setPos(targ);
+		}
+
+		entity.targetMove.x = targ.x + entity.viewRange * cos(rand() % (int)(2 * Pi));
+		entity.targetMove.y = targ.y + entity.viewRange * sin(rand() % (int)(2 * Pi));
+
+		entity.sprite.setRotation(toDeg(atan2(entity.targetMove.y - targ.y, entity.targetMove.x - targ.x))); // atan2 takes y as first param (y,x)	
+		return;
+		
+	}
 
 	//if no target or if entity has reached destination
-	if ((entity.targetMove.x == 0 && entity.targetMove.y == 0) || (distance(entPos, target) <= ((stepX+stepY)*5)  ))
-	{
-		entity.targetMove.x = entPos.x + entity.viewRange * cos(rand() % (int)(2 * Pi));
-		entity.targetMove.y = entPos.y + entity.viewRange * sin(rand() % (int)(2 * Pi));
-
-		entity.sprite.setRotation(toDeg(atan2(entity.targetMove.y - entPos.y, entity.targetMove.x - entPos.x))); // atan2 takes y as first param (y,x)			
-	}
 
 	entity.setPos(sf::Vector2f((entity.getPos().x) + stepX, (entity.getPos().y + stepY)));
 }
@@ -146,15 +120,13 @@ void travel(livingEntity& entity, sf::Vector2f & entPos, float & timeSinceFrame)
 
 void simulate(livingEntity& entity, Map& map, float & timeSinceFrame)
 {
-
 	sf::Vector2f entPos = entity.getPos();	
-
 	
-	travel(entity, entPos, timeSinceFrame);
+	travel(entity, timeSinceFrame);
 	checkChunkForOtherEntities(entity, map);
 }
 
-sf::Clock aiUpdateClock;
+
 const float aiInterval = UPDATE_RATE;
 void aiUpdate()
 {

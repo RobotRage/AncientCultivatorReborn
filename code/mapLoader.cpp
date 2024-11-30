@@ -15,7 +15,7 @@ const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 0;
 int additionalDimensions = 0;
 
-const int cellSize = tilePixelSize * 3.5; // chunks
+const int cellSize = tilePixelSize * 2; // chunks
 
 
 
@@ -111,7 +111,7 @@ int entityCounter = 0;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
 	int grassCount = 10;
-	int sheepCount = 300;
+	int sheepCount = 700;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{		

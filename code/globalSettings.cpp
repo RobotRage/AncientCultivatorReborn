@@ -20,4 +20,5 @@ void playerLoad()
 {
 	player.load("resources/player/playerWalk0.png");
 	player.sprite.setScale(0.5f, 0.5f);
+	player.speed = 20;
 }

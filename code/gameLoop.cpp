@@ -212,29 +212,25 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, livingEntity& player, Map& ma
 
 	window.draw(chunk);
 }
-void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera)
+
+sf::Vector2i sideOfMap(livingEntity& entity)
 {
 	float spawnMapBoundsLower = 0.35f;
-
-	//spawn map to the right or down if player is in the right or down 65% of the map
 	float spawnMapBoundsUpper = 1 - spawnMapBoundsLower;
 
-	float x = player.sprite.getPosition().x;
-	float y = player.sprite.getPosition().y;
+	float x = entity.sprite.getPosition().x;
+	float y = entity.sprite.getPosition().y;
 
 	float tripBoundsx = (x / (mapSize));
 	float tripBoundsy = (y / (mapSize));
 
-	sf::Vector2i vecPos = getCurrentTileMapPos(player.getPos());
+	int offsetX = 0;
+	int offsetY = 0;
+
+	sf::Vector2i vecPos = getCurrentTileMapPos(entity.getPos());
 
 	int indexx = vecPos.x;
 	int indexy = vecPos.y;
-
-
-	//std::cout << "Player Map Pos-  X:" << indexx << "  Y:" << indexy << std::endl;
-
-	int offsetX = 0;
-	int offsetY = 0;
 
 	if (tripBoundsx - (float)indexx >= spawnMapBoundsUpper)
 	{
@@ -252,6 +248,20 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	{
 		offsetY -= 1;
 	}
+	return sf::Vector2i{ offsetX,offsetY };
+}
+
+void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera)
+{
+	//std::cout << "Player Map Pos-  X:" << indexx << "  Y:" << indexy << std::endl;
+	sf::Vector2i off = sideOfMap(player);
+	int offsetX = off.x;
+	int offsetY = off.y;
+
+	sf::Vector2i vecPos = getCurrentTileMapPos(player.getPos());
+
+	int indexx = vecPos.x;
+	int indexy = vecPos.y;
 
 	addToMapIfNotFound(indexx + offsetX, indexy + offsetY);
 	addToMapIfNotFound(indexx, indexy + offsetY);
