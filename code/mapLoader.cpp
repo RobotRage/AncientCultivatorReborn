@@ -9,13 +9,13 @@
 #include "updateAI.h"
 
 
-const int widthHeightInTiles = 155;
+const int widthHeightInTiles = 20;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 0;
 int additionalDimensions = 0;
 
-const int cellSize = tilePixelSize * 2; // chunks
+const int cellSize = tilePixelSize * 5; // chunks
 
 
 
@@ -110,8 +110,8 @@ void recalcEnt(Map& map, sf::Vector2f& mapPos, livingEntity & ent, sf::Vector2f 
 int entityCounter = 0;
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 {
-	int grassCount = 10;
-	int sheepCount = 700;
+	int grassCount = 50;
+	int sheepCount = 10;
 	map.flora.reserve(grassCount);
 	for (int i= 0; i < grassCount; i++)
 	{		
