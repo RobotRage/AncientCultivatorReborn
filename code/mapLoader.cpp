@@ -9,7 +9,7 @@
 #include "updateAI.h"
 
 
-const int widthHeightInTiles = 20;
+const int widthHeightInTiles = 45;
 const int tilePixelSize = 32;
 const int mapSize = (tilePixelSize * widthHeightInTiles);
 const int fullWorldDimensions = 0;

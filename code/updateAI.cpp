@@ -86,13 +86,6 @@ void positiveXChunk(livingEntity& entity, Map& map, int & x, int & y)
 		loopChunks(entity, otherMap, 1, 1);
 		loopChunks(entity, otherMap, 1, -1);
 		loopChunks(entity, otherMap, 1, 0);
-
-		loopChunks(entity, map, -1, 1);
-		loopChunks(entity, map, 0, 1);
-		loopChunks(entity, map, -1, -1);
-		loopChunks(entity, map, -1, 0);
-		loopChunks(entity, map, 0, -1);
-		loopChunks(entity, map, 0, 0);
 	}
 }
 void positiveYChunk(livingEntity& entity, Map& map, int& x, int& y)
@@ -110,12 +103,6 @@ void positiveYChunk(livingEntity& entity, Map& map, int& x, int& y)
 		loopChunks(entity, otherMap, -1, 1);
 		loopChunks(entity, otherMap, 1, 1);
 		loopChunks(entity, otherMap, 0, 1);
-		loopChunks(entity, map, 1, -1);
-		loopChunks(entity, map, -1, -1);
-		loopChunks(entity, map, -1, 0);
-		loopChunks(entity, map, 1, 0);
-		loopChunks(entity, map, 0, -1);
-		loopChunks(entity, map, 0, 0);
 	}
 }
 void negativeXChunk(livingEntity& entity, Map& map, int& x, int& y)
@@ -134,12 +121,6 @@ void negativeXChunk(livingEntity& entity, Map& map, int& x, int& y)
 		loopChunks(entity, otherMap, -1, 1);
 		loopChunks(entity, otherMap, -1, -1);
 		loopChunks(entity, otherMap, -1, 0);
-		loopChunks(entity, map, 1, 1);
-		loopChunks(entity, map, 1, -1);
-		loopChunks(entity, map, 1, 0);
-		loopChunks(entity, map, 0, -1);
-		loopChunks(entity, map, 0, 1);
-		loopChunks(entity, map, 0, 0);
 	}
 }
 void negativeYChunk(livingEntity& entity, Map& map, int& x, int& y)
@@ -158,12 +139,6 @@ void negativeYChunk(livingEntity& entity, Map& map, int& x, int& y)
 		loopChunks(entity, otherMap, 1, -1);
 		loopChunks(entity, otherMap, -1, -1);
 		loopChunks(entity, otherMap, 0, -1);
-		loopChunks(entity, map, -1, 1);
-		loopChunks(entity, map, 1, 1);
-		loopChunks(entity, map, -1, 0);
-		loopChunks(entity, map, 1, 0);
-		loopChunks(entity, map, 0, 1);
-		loopChunks(entity, map, 0, 0);
 	}
 }
 
@@ -175,27 +150,27 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	sf::Vector2i side = sideOfMap(entity, 0.2f);
 	//sf::Vector2i side = sideOfMapDist(entity, entity.viewRange * 2);
 	
-	if (side.x == 1 && side.y == 0)
+	if (side.x == 1 )
 	{	
 		positiveXChunk(entity, map,x,y);
 	}
-	else if (side.x == 0 && side.y == 1)
+	if ( side.y == 1)
 	{
 		positiveYChunk(entity, map,x,y);
 	}
-	else if (side.x == -1 && side.y==0)
+	if (side.x == -1 )
 	{
 		negativeXChunk(entity, map, x, y);
 	}
-	else if (side.x==0 && side.y == -1)
+	if ( side.y == -1)
 	{
 		negativeYChunk(entity, map, x, y);
 	}
 
 	if (side.x == 1 && side.y == 1)
 	{
-		positiveXChunk(entity, map, x, y);
-		positiveYChunk(entity, map, x, y);
+		//positiveXChunk(entity, map, x, y);
+		//positiveYChunk(entity, map, x, y);
 
 		sf::Vector2f newP{ (float)(x + mapSize), (float)(y + mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
@@ -220,8 +195,8 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	}
 	else if (side.x == 1 && side.y == -1)
 	{
-		positiveXChunk(entity, map, x, y);
-		negativeYChunk(entity, map, x, y);
+		//positiveXChunk(entity, map, x, y);
+		//negativeYChunk(entity, map, x, y);
 
 		sf::Vector2f newP{ (float)(x + mapSize), (float)(y - mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
@@ -246,8 +221,8 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	}
 	else if (side.x == -1 && side.y == -1)
 	{
-		negativeXChunk(entity, map, x, y);
-		negativeYChunk(entity, map, x, y);
+		//negativeXChunk(entity, map, x, y);
+		//negativeYChunk(entity, map, x, y);
 		sf::Vector2f newP{ (float)(x - mapSize), (float)(y - mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
 		if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
@@ -271,8 +246,8 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 	}
 	else if (side.x == -1 && side.y == 1)
 	{
-		negativeXChunk(entity, map, x, y);
-		positiveYChunk(entity, map, x, y);
+		//negativeXChunk(entity, map, x, y);
+		//positiveYChunk(entity, map, x, y);
 		sf::Vector2f newP{ (float)(x - mapSize), (float)(y + mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
 		if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
@@ -295,22 +270,12 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 		}
 	}
 
-	if (side.x == 0 && side.y == 0)
-	{
-		defaultChunkLoop(entity, map);
-	}
-
-	//defaultChunkLoop(entity, map);
-
-	
-		
-		
+	defaultChunkLoop(entity, map);
 }
+
 sf::Clock aiUpdateClock;
 void travel(livingEntity& entity, float & timeSinceFrame)
 {
-
-
 	sf::Vector2f posUpdated = entity.getPos();
 	float dist = distance(posUpdated, sf::Vector2f(entity.targetMove.x, entity.targetMove.y));
 	float multiplier = 10;
@@ -343,15 +308,10 @@ void travel(livingEntity& entity, float & timeSinceFrame)
 
 
 		entity.sprite.setRotation(toDeg(atan2(entity.targetMove.y - targ.y, entity.targetMove.x - targ.x))); // atan2 takes y as first param (y,x)	
-		return;
-		
+		return;		
 	}
-
-	
-
 	entity.setPos(sf::Vector2f((entity.getPos().x) + stepX, (entity.getPos().y + stepY)));
 }
-
 
 
 void simulate(livingEntity& entity, Map& map, float & timeSinceFrame)
