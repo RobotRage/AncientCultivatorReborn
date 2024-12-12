@@ -22,6 +22,7 @@ void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player, fl
 	player.entityMoving = userInput(camera, window, player, lastFrameTimer);
 	if (player.entityMoving) { camMoveCheck(camera, window,player, lastFrameTimer); } // only check camera bounds if player is inputting movement
 }
+
 const float multiplierForMovement = 25;
 // move the camera in the direction the player is moving if they are outside a certain distance of the center of the screen
 void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer)
@@ -132,19 +133,44 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player,
 	else { return false; }
 }
 
+bool inView(sf::View& camera, livingEntity * ent)
+{
+	const sf::Vector2f posCam = camera.getCenter();
+	const sf::Vector2f posEnt = ent->getPos();
+
+	const sf::Vector2f sizCam = camera.getSize();
+	const sf::Vector2f sizEnt = ent->sprite.getScale();
+
+	if (  ((posCam.x+abs((int)sizCam.x/2)) > (posEnt.x-abs((int)sizEnt.x/2))) && ((posCam.x - abs((int)sizCam.x / 2)) < (posEnt.x + abs((int)sizEnt.x / 2)))  )
+	{
+		if (((posCam.y + abs((int)sizCam.y / 2)) > (posEnt.y - abs((int)sizEnt.y / 2))) && ((posCam.y - abs((int)sizCam.y / 2)) < (posEnt.y + abs((int)sizEnt.y / 2))))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
 std::mutex entityMutex;
-void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, const Map& map)
+void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, Map& map, sf::View& camera)
 {
 	for (int i = 0; i < map.flora.size(); i++)
 	{
-		window.draw(map.flora[i].sprite);
-
+		livingEntity * ent = &map.flora[i];
+		if (inView(camera, ent))
+		{
+			window.draw(ent->sprite);
+		}	
 	}
 
 	std::unique_lock<std::mutex> lock(entityMutex);
 	for (int i = 0; i < map.fauna.size(); i++)
 	{
-		window.draw(map.fauna[i].sprite);
+		livingEntity* ent = &map.fauna[i];
+		if (inView(camera, ent))
+		{			
+			window.draw(ent->sprite);
+		}
 	}
 }
 
@@ -339,23 +365,23 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	}
 	else
 	{
-		drawFloraFauna(window, player, hashedMaps[{indexx, indexy}]);
+		drawFloraFauna(window, player, hashedMaps[{indexx, indexy}], camera);
 
 		if ((offsetX != 0) && (offsetY != 0))
 		{
-			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
-			drawFloraFauna(window, player, hashedMaps[{indexx, indexy + offsetY}]);
-			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}]);
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}], camera);
+			drawFloraFauna(window, player, hashedMaps[{indexx, indexy + offsetY}], camera);
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}], camera);
 		}
 		else if (offsetX != 0)
 		{
-			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
-			drawFloraFauna(window, player, hashedMaps[{indexx, indexy + offsetY}]);
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}], camera);
+			drawFloraFauna(window, player, hashedMaps[{indexx, indexy + offsetY}], camera);
 		}
 		else if (offsetY != 0)
 		{
-			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}]);
-			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}]);
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy + offsetY}], camera);
+			drawFloraFauna(window, player, hashedMaps[{indexx + offsetX, indexy}], camera);
 		}
 	}
 }
