@@ -65,6 +65,7 @@ struct KeyEqual {
 // localMapChunks only operates on hashedMaps
 
 extern std::mutex entityMutex;
+extern std::mutex mapLoaderMutex;
 
 
 extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
@@ -74,7 +75,7 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos);
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera);
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const Map& map);
 void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, Map& map);
-void initMaps(livingEntity& player);
+void initMaps();
 sf::Vector2i getCurrentTileMapPos(sf::Vector2f pos);
 void recalcEnt(Map& map, sf::Vector2f& mapPos, livingEntity& ent, sf::Vector2f newPos);
 void addToMapIfNotFound(int x, int y);

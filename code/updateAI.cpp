@@ -373,8 +373,9 @@ void aiUpdate()
 					if (faunaPos != it->second.fauna[a].mapLocation) // currentposition != saved position
 					{
 						#pragma region generateNewChunkMapForObject						
-						std::unique_lock<std::mutex> lock(entityMutex);
+						std::lock_guard<std::mutex> lock(entityMutex);
 						it->second.fauna[a].mapLocation = faunaPos;
+						std::lock_guard<std::mutex> lock2(mapLoaderMutex);
 						hashedMaps[{faunaPos.x, faunaPos.y}].fauna.push_back(it->second.fauna[a]);	//put saved animal into hashed map
 						addObjectToChunkMap(it->second.fauna[a], hashedMaps[{faunaPos.x, faunaPos.y}]);
 						it->second.fauna.erase(it->second.fauna.begin() + a); //erase from list of animals

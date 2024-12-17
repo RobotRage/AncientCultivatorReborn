@@ -398,7 +398,7 @@ void draw(sf::RenderWindow & window, livingEntity& player, sf::View& camera)
 	window.draw(player.sprite);	
 }
 
-
+sf::Thread mapsThread(&initMaps);
 sf::Thread aiThread(&aiUpdate);
 void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 {
@@ -414,7 +414,7 @@ void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 	std::string gameSeed = readFile("resources/environment/map_data/gameSeed.txt");
 	srand(std::stoi(gameSeed));
 
-	initMaps(player);
+	mapsThread.launch();
 	aiThread.launch(); //start ai after maps is loaded since maps loads AIs
 
 	sf::FloatRect fr = player.sprite.getLocalBounds();

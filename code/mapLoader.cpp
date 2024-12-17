@@ -31,6 +31,7 @@ void addToMapIfNotFound(int x, int y)
 		spawnFloraAndFauna(map, vecOff);
 
 		std::pair<int, int> p = { x,y };
+		std::lock_guard<std::mutex> lock(mapLoaderMutex);
 		hashedMaps.emplace(p,map);
 	}
 }
@@ -149,12 +150,13 @@ void putMapInVec(sf::Texture& m_tileset)
 			offset.y = (mapSize * j);
 			Map map(m_tileset,offset);
 			spawnFloraAndFauna(map, offset);
+			std::lock_guard<std::mutex> lock(mapLoaderMutex);
 			hashedMaps[{i, j}] = map;
 		}
 	}
 }
-
-void initMaps(livingEntity & player)
+std::mutex mapLoaderMutex;
+void initMaps()
 {
 	if (!m_tileset.loadFromFile("resources/environment/Grass And Road Tiles/grassAndRoad.png"))
 	{
