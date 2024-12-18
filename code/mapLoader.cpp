@@ -25,13 +25,14 @@ sf::Texture m_tileset;
 std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps(100000);
 void addToMapIfNotFound(int x, int y)
 {
+	std::lock_guard<std::mutex> lock(mapLoaderMutex);
 	if (hashedMaps.find({ x, y }) == hashedMaps.end()) {
 		sf::Vector2f vecOff{ (float)x * mapSize, (float)y * mapSize };
 		Map map(m_tileset, vecOff);
 		spawnFloraAndFauna(map, vecOff);
 
 		std::pair<int, int> p = { x,y };
-		std::lock_guard<std::mutex> lock(mapLoaderMutex);
+		
 		hashedMaps.emplace(p,map);
 	}
 }
@@ -77,7 +78,7 @@ void randFauna(Map& map, sf::Vector2f& pos, livingEntity& animal)
 	sf::Vector2f animalpPos(rand() % mapSize + 1, rand() % mapSize + 1);
 	//sf::Vector2f animalpPos(25, 25);
 	animal.setPos(animalpPos + pos);
-	map.fauna.push_back(animal);
+	map.fauna.emplace_back(animal);
 	addObjectToChunkMap(animal, map);
 }
 void randFlora(Map& map, sf::Vector2f& pos, livingEntity& plant)
@@ -122,6 +123,7 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 		randFlora(map, pos, tgrass);
 		setLabelFont(tgrass);
 		entityCounter++;
+		sleep(0.01);
 	}
 	for (int i = 0; i < sheepCount; i++)
 	{			
@@ -131,6 +133,7 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 		randFauna(map, pos, tsheep);
 		setLabelFont(tsheep);
 		entityCounter++;
+		sleep(0.01);
 	}
 }
 
@@ -138,6 +141,7 @@ void spawnFloraAndFauna(Map& map, sf::Vector2f& pos)
 void putMapInVec(sf::Texture& m_tileset)
 {
 	int worldDimensionsTotal = fullWorldDimensions + additionalDimensions;
+
 	for (int i = 0; i < worldDimensionsTotal; i++)
 	{
 		int mapIx = mapSize * i;
@@ -151,7 +155,9 @@ void putMapInVec(sf::Texture& m_tileset)
 			Map map(m_tileset,offset);
 			spawnFloraAndFauna(map, offset);
 			std::lock_guard<std::mutex> lock(mapLoaderMutex);
+			sleep(0.1);
 			hashedMaps[{i, j}] = map;
+			sleep(0.1);
 		}
 	}
 }

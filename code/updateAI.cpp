@@ -76,6 +76,7 @@ void positiveXChunk(livingEntity& entity, Map& map, int & x, int & y)
 {
 	sf::Vector2f newP{ (float)(x + mapSize), (float)(y) };
 	sf::Vector2i hash = getCurrentTileMapPos(newP);
+	std::lock_guard<std::mutex> lock(mapLoaderMutex);
 	if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 	{
 		defaultChunkLoop(entity, map);
@@ -92,6 +93,7 @@ void positiveYChunk(livingEntity& entity, Map& map, int& x, int& y)
 {
 	sf::Vector2f newP{ (float)(x), (float)(y + mapSize) };
 	sf::Vector2i hash = getCurrentTileMapPos(newP);
+	std::lock_guard<std::mutex> lock(mapLoaderMutex);
 	if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 	{
 		defaultChunkLoop(entity, map);
@@ -109,6 +111,7 @@ void negativeXChunk(livingEntity& entity, Map& map, int& x, int& y)
 {
 	sf::Vector2f newP{ (float)(x - mapSize), (float)(y) };
 	sf::Vector2i hash = getCurrentTileMapPos(newP);
+	std::lock_guard<std::mutex> lock(mapLoaderMutex);
 	if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 	{
 		defaultChunkLoop(entity, map);
@@ -127,6 +130,7 @@ void negativeYChunk(livingEntity& entity, Map& map, int& x, int& y)
 {
 	sf::Vector2f newP{ (float)(x), (float)(y - mapSize) };
 	sf::Vector2i hash = getCurrentTileMapPos(newP);
+	std::lock_guard<std::mutex> lock(mapLoaderMutex);
 	if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 	{
 		defaultChunkLoop(entity, map);
@@ -174,6 +178,7 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 
 		sf::Vector2f newP{ (float)(x + mapSize), (float)(y + mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
+		std::lock_guard<std::mutex> lock(mapLoaderMutex);
 		if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 		{
 			defaultChunkLoop(entity, map);
@@ -200,6 +205,7 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 
 		sf::Vector2f newP{ (float)(x + mapSize), (float)(y - mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
+		std::lock_guard<std::mutex> lock(mapLoaderMutex);
 		if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 		{
 			defaultChunkLoop(entity, map);
@@ -225,6 +231,7 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 		//negativeYChunk(entity, map, x, y);
 		sf::Vector2f newP{ (float)(x - mapSize), (float)(y - mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
+		std::lock_guard<std::mutex> lock(mapLoaderMutex);
 		if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 		{
 			defaultChunkLoop(entity, map);
@@ -250,6 +257,7 @@ void checkChunkForOtherEntities(livingEntity& entity, Map& map)
 		//positiveYChunk(entity, map, x, y);
 		sf::Vector2f newP{ (float)(x - mapSize), (float)(y + mapSize) };
 		sf::Vector2i hash = getCurrentTileMapPos(newP);
+		std::lock_guard<std::mutex> lock(mapLoaderMutex);
 		if (hashedMaps.find({ hash.x, hash.y }) == hashedMaps.end())
 		{
 			defaultChunkLoop(entity, map);
@@ -303,6 +311,7 @@ void travel(livingEntity& entity, float & timeSinceFrame)
 			entity.targetMove.x = targ.x + entity.viewRange * cos(rand() % (int)(2 * Pi));
 			entity.targetMove.y = targ.y + entity.viewRange * sin(rand() % (int)(2 * Pi));
 			sf::Vector2i entPos = getCurrentTileMapPos({ (float)entity.targetMove.x , (float)entity.targetMove.y});
+			std::lock_guard<std::mutex> lock(mapLoaderMutex);
 			if (hashedMaps.find({ entPos.x, entPos.y }) != hashedMaps.end()) { found=true; }
 		} while (!found);
 
@@ -369,13 +378,14 @@ void aiUpdate()
 					}
 
 					sf::Vector2i faunaPos = getCurrentTileMapPos(it->second.fauna[a].getPos());
+					std::lock_guard<std::mutex> lock2(mapLoaderMutex);
 					if (hashedMaps.find({ faunaPos.x, faunaPos.y }) == hashedMaps.end()) { continue; } //dont let entities get added to uncreated maps
 					if (faunaPos != it->second.fauna[a].mapLocation) // currentposition != saved position
 					{
 						#pragma region generateNewChunkMapForObject						
 						std::lock_guard<std::mutex> lock(entityMutex);
 						it->second.fauna[a].mapLocation = faunaPos;
-						std::lock_guard<std::mutex> lock2(mapLoaderMutex);
+						
 						hashedMaps[{faunaPos.x, faunaPos.y}].fauna.push_back(it->second.fauna[a]);	//put saved animal into hashed map
 						addObjectToChunkMap(it->second.fauna[a], hashedMaps[{faunaPos.x, faunaPos.y}]);
 						it->second.fauna.erase(it->second.fauna.begin() + a); //erase from list of animals
