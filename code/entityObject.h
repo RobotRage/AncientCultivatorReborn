@@ -1,9 +1,9 @@
 #pragma once
 
 #include "includes.h"
-#include <mutex>
+#include "globalSettings.h"
 #include "utilityFunctions.h"
-
+#include "list"
 struct ChunkSideInfo {
     bool top = false;
     bool bottom = false;
@@ -18,68 +18,21 @@ public:
 
     std::string name;
     int animFrame = 0;
-    sf::Sprite sprite;
-    std::vector<sf::Texture> moveAnim;     // Animation textures for movement
-    std::vector<sf::Texture> defaultAnim;  // Animation textures for default state
+    sf::Sprite * sprite;
 
-    std::vector<int> lst;
+    std::list<int> lst;
     
     sf::Text label;
 
     // Variadic template constructor to load textures
-    template<typename... Paths>
-    void load(Paths... paths)
-    {
-        loadTextures(paths...); // Load textures using variadic templates
-        if (!defaultAnim.empty()) {
-            sprite.setTexture(defaultAnim[0]); // Set the initial texture if available
-        }
-    }
+
 
     void setPos(sf::Vector2f pos)
     {
-        sprite.setPosition(pos);
-    }
-    sf::Vector2f getPos()
-    {
-        return sprite.getPosition();
+        sprite->setPosition(pos);
     }
 
-    void animAssign(const std::vector<std::string>& texturePaths, std::vector<sf::Texture>* anim)
-    {
-        anim->clear();
-        for (const auto& path : texturePaths) {
-            sf::Texture texture;
-            if (texture.loadFromFile(path)) {
-                anim->push_back(texture);
-            }
-            else {
-                std::cout << "-#ERROR# failed to load texture from " << path << std::endl;
-            }
-        }
-    }
-
-protected:
-    void loadTexture(const std::string& path)
-    {
-        sf::Texture texture;
-        if (texture.loadFromFile(path)) {
-            defaultAnim.push_back(texture);
-        }
-        else {
-            std::cout << "-#ERROR# failed to load texture from " << path << std::endl;
-        }
-    }
-
-    template<typename... Paths>
-    void loadTextures(const std::string& path, Paths... rest)
-    {
-        loadTexture(path);       
-        loadTextures(rest...);   // Recursively call for the rest
-    }
-
-    // Base case for recursion
-    void loadTextures() { /* Do nothing */ }
+  
 };
 
 class nonLivingEntity : public baseEntity
@@ -101,7 +54,7 @@ public:
     float interactRange = 10.0f;
     sf::Vector2f travelCounter{ 0,0 };
 
-    std::vector<baseEntity*> knownEntities;
+    std::list<baseEntity*> knownEntities;
 
     sf::Vector2i targetMove{ 0 ,0};
 
@@ -127,6 +80,6 @@ public:
     void moveEntity(const sf::Vector2f& currentPosition, const sf::Vector2f& change)
     {
         travelCounter += change;
-        sprite.setPosition(currentPosition + change);
+        sprite->setPosition(currentPosition + change);
     }
 };

@@ -30,8 +30,10 @@ public:
                 int tileNumber = tile;
 
                 // Find its position in the tileset texture
-                int tu = tileNumber % (m_tileset.getSize().x / tileSize.x);
-                int tv = tileNumber / (m_tileset.getSize().x / tileSize.x);
+                int x = m_tileset.getSize().x;
+                int tsx = tileSize.x;
+                int tu = tileNumber % (x / tsx);
+                int tv = tileNumber / (x / tsx);
 
                 // Get a pointer to the current tile's quad
                 sf::Vertex* quad = &m_vertices[(i + j * width) * 4];               

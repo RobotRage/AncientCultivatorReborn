@@ -18,23 +18,17 @@ class Map
 public:
 
     TileMap tiles;
-    std::vector<livingEntity> flora;
-    std::vector<livingEntity> fauna;
-    std::unordered_map<int, std::vector<livingEntity*>> localMapChunksLiving;
-    std::unordered_map<int, std::vector<baseEntity*>> localMapChunksItems;
+    std::list<livingEntity> flora;
+    std::list<livingEntity> fauna;
+    std::unordered_map<int, std::list<livingEntity*>> localMapChunksLiving;
+    std::unordered_map<int, std::list<baseEntity*>> localMapChunksItems;
 
     Map() 
     {
     };
-    Map(sf::Texture tileSet, sf::Vector2f& offset)
+    Map(sf::Texture & tileSet, sf::Vector2f& offset)
     {
-        //std::vector<std::string> loadedMap;
-        //loadedMap.reserve(19200);
-       // std::string strList2 = readFile(file);
-        //for (int i = 0; i < 19200; i++)
-        //{
-            //loadedMap.push_back("26");
-       // }
+
 
         int tile = 26;
         if (!tiles.load(tileSet, sf::Vector2u(tilePixelSize, tilePixelSize), widthHeightInTiles,
@@ -64,8 +58,7 @@ struct KeyEqual {
 
 // localMapChunks only operates on hashedMaps
 
-extern std::mutex entityMutex;
-extern std::mutex mapLoaderMutex;
+
 
 
 extern std::unordered_map<std::pair<int, int>, Map, KeyHash, KeyEqual> hashedMaps;
@@ -73,7 +66,7 @@ int calcChunkMap(sf::Vector2f obj);
 void addObjectToChunkMap(livingEntity& obj, Map& map);
 void spawnFloraAndFauna(Map& map, sf::Vector2f& pos);
 void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& camera);
-void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player,const Map& map);
+void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, Map& map, sf::View& camera);
 void drawFloraFaunaDebug(sf::RenderWindow& window, const livingEntity& player, Map& map);
 void initMaps();
 sf::Vector2i getCurrentTileMapPos(sf::Vector2f pos);

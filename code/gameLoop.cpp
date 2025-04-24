@@ -15,10 +15,16 @@ void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& play
 #pragma endregion
 
 
-
+bool mapsAndUpdateAiStart = false;
 //main thread (ai thread in updateAI.cpp)
 void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player, float lastFrameTimer)
 {
+
+		
+		aiUpdate();
+
+	
+
 	player.entityMoving = userInput(camera, window, player, lastFrameTimer);
 	if (player.entityMoving) { camMoveCheck(camera, window,player, lastFrameTimer); } // only check camera bounds if player is inputting movement
 }
@@ -29,7 +35,7 @@ void camMoveCheck(sf::View& camera, sf::RenderWindow& window, livingEntity& play
 {
 
 	sf::Vector2f centerCam = camera.getCenter();
-	sf::Vector2f playerPos = player.sprite.getPosition();
+	sf::Vector2f playerPos = player.sprite->getPosition();
 
 	float dist = distance(centerCam, playerPos);
 	if (dist > playerDistFromCenterCamToTriggerMoveCam)
@@ -55,7 +61,7 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player,
 
 	bool A = false; bool W = false; bool D = false; bool S = false;
 
-	sf::Vector2f pos = player.sprite.getPosition();
+	sf::Vector2f pos = player.sprite->getPosition();
 	sf::Vector2f change(0, 0);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift))
@@ -72,35 +78,35 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player,
 	{
 		change.x = change.x - 1;
 		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
-		player.sprite.setRotation(270);
+		player.sprite->setRotation(270);
 		A = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right) || sf::Keyboard::isKeyPressed(sf::Keyboard::D))
 	{
 		change.x = change.x + 1;
 		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
-		player.sprite.setRotation(90);
+		player.sprite->setRotation(90);
 		D = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down) || sf::Keyboard::isKeyPressed(sf::Keyboard::S))
 	{
 		change.y = change.y + 1;
 		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
-		player.sprite.setRotation(180);
+		player.sprite->setRotation(180);
 		S = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::W))
 	{
 		change.y = change.y - 1;
 		player.moveEntity(pos, change * (float)player.getSpeed() * lastFrameTimer * multiplierForMovement);
-		player.sprite.setRotation(0);
+		player.sprite->setRotation(0);
 		W = true;
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Equal))
 	{
 		debug = !debug;
-		sleep(0.1f);
+		sf::sleep(sf::milliseconds(100));
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num9))
@@ -111,7 +117,7 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player,
 		siz.y = round(siz.y * 0.5);
 		camera.setSize(siz);
 		window.setView(camera);
-		sleep(0.1f);
+		sf::sleep(sf::milliseconds(100));
 	}
 	else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num0))
 	{
@@ -120,13 +126,13 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player,
 		siz.y = round(siz.y * 2);
 		camera.setSize(siz);
 		window.setView(camera);	
-		sleep(0.1f);
+		sf::sleep(sf::milliseconds(100));
 	}
 
-	if (A && W) { player.sprite.setRotation(315); }
-	if (A && S) { player.sprite.setRotation(225); }
-	if (S && D) { player.sprite.setRotation(135); }
-	if (D && W) { player.sprite.setRotation(35); }
+	if (A && W) { player.sprite->setRotation(315); }
+	if (A && S) { player.sprite->setRotation(225); }
+	if (S && D) { player.sprite->setRotation(135); }
+	if (D && W) { player.sprite->setRotation(35); }
 
 #pragma endregion
 	if (A || D || S || W) { return true; }
@@ -136,10 +142,10 @@ bool userInput(sf::View& camera, sf::RenderWindow& window, livingEntity& player,
 bool inView(sf::View& camera, livingEntity * ent)
 {
 	const sf::Vector2f posCam = camera.getCenter();
-	const sf::Vector2f posEnt = ent->getPos();
+	const sf::Vector2f posEnt = ent->sprite->getPosition();
 
 	const sf::Vector2f sizCam = camera.getSize();
-	const sf::Vector2f sizEnt = ent->sprite.getScale();
+	const sf::Vector2f sizEnt = ent->sprite->getScale();
 
 	if (  ((posCam.x+abs((int)sizCam.x/2)) > (posEnt.x-abs((int)sizEnt.x/2))) && ((posCam.x - abs((int)sizCam.x / 2)) < (posEnt.x + abs((int)sizEnt.x / 2)))  )
 	{
@@ -151,25 +157,28 @@ bool inView(sf::View& camera, livingEntity * ent)
 	return false;
 }
 
-std::mutex entityMutex;
 void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, Map& map, sf::View& camera)
 {
-	for (int i = 0; i < map.flora.size(); i++)
-	{
-		livingEntity * ent = &map.flora[i];
+
+	for (auto & i : map.flora) {
+		livingEntity * ent = &i;
 		if (inView(camera, ent))
 		{
-			window.draw(ent->sprite);
+
+			window.draw(*ent->sprite);
+			
+			
 		}	
 	}
 
-	std::unique_lock<std::mutex> lock(entityMutex);
-	for (int i = 0; i < map.fauna.size(); i++)
-	{
-		livingEntity* ent = &map.fauna[i];
+
+	for (auto& i : map.fauna) {
+		livingEntity* ent = &i;
 		if (inView(camera, ent))
 		{			
-			window.draw(ent->sprite);
+
+			window.draw(*ent->sprite);
+			
 		}
 	}
 }
@@ -178,40 +187,42 @@ void drawFloraFauna(sf::RenderWindow& window, const livingEntity& player, Map& m
 void drawFloraFaunaDebug(sf::RenderWindow& window, livingEntity& player, Map& map)
 {
 
-	for (int i = 0; i < map.flora.size(); i++)
-	{
-		window.draw(map.flora[i].sprite);
-		map.flora[i].label.setPosition(sf::Vector2f(map.flora[i].getPos().x, map.flora[i].getPos().y - 25));
-		window.draw(map.flora[i].label);
+
+	for (auto & i : map.flora) {
+		window.draw(*i.sprite);
+		i.label.setPosition(sf::Vector2f(i.sprite->getPosition().x, i.sprite->getPosition().y - 25));
+		window.draw(i.label);
 
 		sf::Text chunkFlora;
-		sf::Vector2i locationChunk = getCurrentTileMapPos(map.flora[i].getPos());
+		sf::Vector2i locationChunk = getCurrentTileMapPos(i.sprite->getPosition());
 		chunkFlora.setFont(font);
 		chunkFlora.setString(std::to_string(locationChunk.x) + "," + std::to_string(locationChunk.y));
-		chunkFlora.setPosition(map.flora[i].getPos());
+		chunkFlora.setPosition(i.sprite->getPosition());
 		window.draw(chunkFlora);
 	}
 
-	std::unique_lock<std::mutex> lock(entityMutex);
-	for (int i = 0; i < map.fauna.size(); i++)
+
+
+	
+	for (auto & i : map.fauna) 
 	{
 		sf::Color sightCol = { 255,255,255,150 };
-		window.draw(map.fauna[i].sprite);
+		window.draw(*i.sprite);
 
-		sf::Lock lock(lineMutexDebug);
 
-		for (int j = 0; j < viewLineList2.size(); j++)
-		{
-			window.draw(viewLineList2[j]);
+
+		for (auto const& i : viewLineList2) {
+			window.draw(i);
 		}
-		if (i %2 == 0) { viewLineList2.clear(); };
 
-		map.fauna[i].label.setPosition(sf::Vector2f(map.fauna[i].getPos().x, map.fauna[i].getPos().y - 25));
-		window.draw(map.fauna[i].label);
-		sf::CircleShape circle(map.fauna[i].viewRange);
+		//if (i %2 == 0) { viewLineList2.clear(); };
+
+		i.label.setPosition(sf::Vector2f(i.sprite->getPosition().x, i.sprite->getPosition().y - 25));
+		window.draw(i.label);
+		sf::CircleShape circle(i.viewRange);
 		circle.setOrigin(circle.getRadius(), circle.getRadius());
-		circle.setPosition(map.fauna[i].getPos());
-		if (map.fauna[i].knownEntities.size() > 0)
+		circle.setPosition(i.sprite->getPosition());
+		if (i.knownEntities.size() > 0)
 		{
 			sightCol = { 255,10,10,150 };
 		}
@@ -223,30 +234,30 @@ void drawFloraFaunaDebug(sf::RenderWindow& window, livingEntity& player, Map& ma
 		//window.draw(circle);
 
 		sf::Text chunkFuna;
-		sf::Vector2i locationChunk = getCurrentTileMapPos(map.fauna[i].getPos());
+		sf::Vector2i locationChunk = getCurrentTileMapPos(i.sprite->getPosition());
 		chunkFuna.setFont(font);
 		chunkFuna.setString(std::to_string(locationChunk.x) + "," + std::to_string(locationChunk.y));
-		chunkFuna.setPosition(map.fauna[i].getPos());
+		chunkFuna.setPosition(i.sprite->getPosition());
 		window.draw(chunkFuna);
 	}
 
 	sf::Text chunk;
-	sf::Vector2i playerChunk = getCurrentTileMapPos(player.getPos());
+	sf::Vector2i playerChunk = getCurrentTileMapPos(player.sprite->getPosition());
 	chunk.setFont(font);
 	chunk.setString(std::to_string(playerChunk.x) + "," + std::to_string(playerChunk.y));
-	chunk.setPosition(player.getPos());
+	chunk.setPosition(player.sprite->getPosition());
 
 	window.draw(chunk);
 }
 
 sf::Vector2i sideOfMapDist(livingEntity& entity, float tripDist)
 {
-	sf::Vector2i tmPos = getCurrentTileMapPos(entity.getPos());
-	float left = abs(entity.getPos().x) - abs(tmPos.x * mapSize);
-	float right = abs(entity.getPos().x) - (abs(tmPos.x * mapSize) + mapSize);
+	sf::Vector2i tmPos = getCurrentTileMapPos(entity.sprite->getPosition());
+	float left = abs(entity.sprite->getPosition().x) - abs(tmPos.x * mapSize);
+	float right = abs(entity.sprite->getPosition().x) - (abs(tmPos.x * mapSize) + mapSize);
 
-	float up = abs(entity.getPos().y) - abs(tmPos.y * mapSize);
-	float down = abs(entity.getPos().y) - (abs(tmPos.y * mapSize)+mapSize);
+	float up = abs(entity.sprite->getPosition().y) - abs(tmPos.y * mapSize);
+	float down = abs(entity.sprite->getPosition().y) - (abs(tmPos.y * mapSize)+mapSize);
 
 	int x = 0;
 	int y = 0;
@@ -272,8 +283,8 @@ sf::Vector2i sideOfMap(livingEntity& entity, float boundsLower)
 {
 	float spawnMapBoundsUpper = 1 - boundsLower;
 
-	float x = entity.sprite.getPosition().x;
-	float y = entity.sprite.getPosition().y;
+	float x = entity.sprite->getPosition().x;
+	float y = entity.sprite->getPosition().y;
 
 	float tripBoundsx = (x / (mapSize));
 	float tripBoundsy = (y / (mapSize));
@@ -281,7 +292,7 @@ sf::Vector2i sideOfMap(livingEntity& entity, float boundsLower)
 	int offsetX = 0;
 	int offsetY = 0;
 
-	sf::Vector2i vecPos = getCurrentTileMapPos(entity.getPos());
+	sf::Vector2i vecPos = getCurrentTileMapPos(entity.sprite->getPosition());
 
 	int indexx = vecPos.x;
 	int indexy = vecPos.y;
@@ -312,7 +323,7 @@ void drawnNearestMaps(sf::RenderWindow& window, livingEntity& player, sf::View& 
 	int offsetX = off.x;
 	int offsetY = off.y;
 
-	sf::Vector2i vecPos = getCurrentTileMapPos(player.getPos());
+	sf::Vector2i vecPos = getCurrentTileMapPos(player.sprite->getPosition());
 
 	int indexx = vecPos.x;
 	int indexy = vecPos.y;
@@ -395,13 +406,37 @@ void draw(sf::RenderWindow & window, livingEntity& player, sf::View& camera)
 	drawnNearestMaps(window, player,camera);
 
 	//player level draw
-	window.draw(player.sprite);	
+	window.draw(*player.sprite);	
 }
 
-sf::Thread mapsThread(&initMaps);
-sf::Thread aiThread(&aiUpdate);
+//sf::Thread mapsThread(&initMaps);
+//sf::Thread aiThread(&aiUpdate);
+
+std::list<sf::Texture> moveAnim;     // Animation textures for movement
+std::list<sf::Texture> defaultAnim;
+
+sf::Texture stand;
+
 void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 {
+	initMaps();
+	//create running animation and assign it to the play object's move animation
+	std::list<std::string> lst{ "resources/player/playerWalk0.png","resources/player/playerWalk1.png", "resources/player/playerWalk2.png", "resources/player/playerWalk3.png", "resources/player/playerWalk4.png" };
+	//player.animAssign(lst);
+
+	for (const auto& path : lst) {
+		sf::Texture texture;
+		if (texture.loadFromFile(path)) {
+			moveAnim.push_back(texture);
+		}
+		else {
+			std::cout << "-#ERROR# failed to load texture from " << path << std::endl;
+		}
+	}
+	stand.loadFromFile("resources/player/playerWalk0.png");
+	defaultAnim.push_back(stand);
+	
+
 	srand(time(NULL));
 	
 	std::string fontPath = "resources/font/Pelagiad.ttf";
@@ -414,27 +449,32 @@ void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player)
 	std::string gameSeed = readFile("resources/environment/map_data/gameSeed.txt");
 	srand(std::stoi(gameSeed));
 
-	mapsThread.launch();
-	aiThread.launch(); //start ai after maps is loaded since maps loads AIs
+	//mapsThread.launch();
+	//aiThread.launch(); //start ai after maps is loaded since maps loads AIs
 
-	sf::FloatRect fr = player.sprite.getLocalBounds();
-	player.sprite.setOrigin(fr.width / 2, fr.height / 2); // set origin of sprite to center of sprite
+	mapsAndUpdateAiStart = true;
 
-	player.sprite.setPosition((mapSize * fullWorldDimensions) / 2, (mapSize * fullWorldDimensions) / 2);
+	sf::FloatRect fr = player.sprite->getLocalBounds();
+	player.sprite->setOrigin(fr.width / 2, fr.height / 2); // set origin of sprite to center of sprite
+
+	player.sprite->setPosition((mapSize * fullWorldDimensions) / 2, (mapSize * fullWorldDimensions) / 2);
 	
-	//create running animation and assign it to the play object's move animation
-	std::vector<std::string> lst{ "resources/player/playerWalk0.png","resources/player/playerWalk1.png", "resources/player/playerWalk2.png", "resources/player/playerWalk3.png", "resources/player/playerWalk4.png" };
-	player.animAssign(lst, &player.moveAnim);
+
+
 
 	camera.move(sf::Vector2f((mapSize * fullWorldDimensions) / 2, (mapSize * fullWorldDimensions) / 2));
 	window.setView(camera);
+
+
 }
 
 
 //takes a ref to entity to change animation frame
-void animGeneric(baseEntity& entity, std::vector<sf::Texture>& anim)
+void animGeneric(baseEntity& entity, std::list<sf::Texture>& anim)
 {
 	//TODO reset animFrame when animation state changes, i think this might be an issue
+
+	
 	if (entity.animFrame + 1 >= anim.size())
 	{
 		entity.animFrame = 0;
@@ -443,7 +483,10 @@ void animGeneric(baseEntity& entity, std::vector<sf::Texture>& anim)
 	{
 		entity.animFrame = entity.animFrame + 1;
 	}
-	entity.sprite.setTexture((anim)[entity.animFrame]);
+
+	for (sf::Texture const& i : anim) {
+		entity.sprite->setTexture(i);
+	}
 }
 
 
@@ -452,10 +495,10 @@ void animate(livingEntity& player)
 {
 	if (player.entityMoving)
 	{
-		animGeneric(player, player.moveAnim);
+		animGeneric(player, moveAnim);
 	}
 	else
 	{
-		animGeneric(player, player.defaultAnim);
+		animGeneric(player, defaultAnim);
 	}
 }

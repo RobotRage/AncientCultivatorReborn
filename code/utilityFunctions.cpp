@@ -34,10 +34,7 @@ double toDeg(double rad)
     return rad * (180 / Pi);
 }
 
-void sleep(float seconds)
-{
-    sf::sleep(sf::seconds(seconds));;
-}
+
 
 void print(std::string s)
 {
@@ -48,7 +45,7 @@ bool moved = false;
 
 
 
-float distance(const sf::Vector2f& p1, const sf::Vector2f& p2) {
+float distance(const sf::Vector2f p1, const sf::Vector2f p2) {
     return std::sqrt(std::pow(p2.x - p1.x, 2) + std::pow(p2.y - p1.y, 2));
 }
 
@@ -95,25 +92,5 @@ std::string readFile(const std::string filePath)
     return lines; 
 }
 
-std::vector<int> strVecToIntVec(std::vector<std::string> strLst)
-{
-    std::vector<int> intLst; 
-    for (int i = 0; i < strLst.size(); i++)
-    {
-        intLst.push_back(std::stoi(strLst[i]));
-    }
-    return intLst;
-}
 
-std::vector<std::string> splitString(const std::string str, char delimiter) {
-    std::vector<std::string> tokens; 
-    std::string token; 
-    std::stringstream ss(str);
 
-    // Use getline to read each token separated by the delimiter
-    while (std::getline(ss, token, delimiter)) {
-        tokens.push_back(token); // Add the token to the vector
-    }
-
-    return tokens; // Return the vector of tokens
-}

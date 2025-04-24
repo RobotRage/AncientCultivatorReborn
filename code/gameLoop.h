@@ -8,6 +8,6 @@ void update(sf::View& camera, sf::RenderWindow& window, livingEntity& player, fl
 void draw(sf::RenderWindow& window, livingEntity& player, sf::View& camera);
 void init(sf::View& camera, sf::RenderWindow& window, livingEntity& player);
 void animate(livingEntity& player);
-void animGeneric(baseEntity& entity, std::vector<sf::Texture>& anim);
+void animGeneric(baseEntity& entity, std::list<sf::Texture>& anim);
 sf::Vector2i sideOfMap(livingEntity& entity, float bounds);
 sf::Vector2i sideOfMapDist(livingEntity& entity, float tripDist);
