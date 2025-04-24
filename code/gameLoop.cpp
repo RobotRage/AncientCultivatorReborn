@@ -484,9 +484,10 @@ void animGeneric(baseEntity& entity, std::list<sf::Texture>& anim)
 		entity.animFrame = entity.animFrame + 1;
 	}
 
-	for (sf::Texture const& i : anim) {
-		entity.sprite->setTexture(i);
-	}
+	auto iter = anim.begin();
+	std::advance(iter, entity.animFrame);  // Move iterator to the index
+	entity.sprite->setTexture(*iter);
+
 }
 
 
