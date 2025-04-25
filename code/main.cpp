@@ -16,8 +16,7 @@ int main()
     //sf::Thread hotLoad;
     init(camera, window, player);
 
-
-    
+    srand(time(0));
 
     // Clocks for independent updates
     sf::Clock updateClock;   

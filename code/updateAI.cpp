@@ -50,7 +50,12 @@ void loopChunks(livingEntity& entity, Map& map, const int & offX, const int & of
 			}
 			if (debug)
 			{				
-				viewLineList2.clear();
+				
+				if ((rand() % (3 - 1 + 1) + 1) == 2)
+				{
+					//viewLineList2.clear();
+				}
+
 				sf::VertexArray line(sf::Lines, 2);
 
 				line[0].position = entity.sprite->getPosition(); // Start point
@@ -67,9 +72,11 @@ void loopChunks(livingEntity& entity, Map& map, const int & offX, const int & of
 
 		}
 	}
+	
 }
 void defaultChunkLoop(livingEntity& entity, Map& map)
 {
+	
 	loopChunks(entity, map, -1, 1);
 	loopChunks(entity, map, -1, -1); 
 	loopChunks(entity, map, -1, 0);
@@ -79,10 +86,13 @@ void defaultChunkLoop(livingEntity& entity, Map& map)
 	loopChunks(entity, map, 0, -1);
 	loopChunks(entity, map, 0, 1);
 	loopChunks(entity, map, 0, 0); 
+
+
 }
 
 void positiveXChunk(livingEntity& entity, Map& map, int & x, int & y)
 {
+	
 	sf::Vector2f newP{ (float)(x + mapSize), (float)(y) };
 	sf::Vector2i hash = getCurrentTileMapPos(newP);
 
@@ -334,6 +344,7 @@ void travel(livingEntity& entity, float & timeSinceFrame)
 
 void simulate(livingEntity& entity, Map& map, float & timeSinceFrame)
 {
+	
 	sf::Vector2f entPos = entity.sprite->getPosition();	
 	
 	travel(entity, timeSinceFrame);
@@ -345,7 +356,7 @@ const float aiInterval = UPDATE_RATE;
 
 void aiUpdate()
 {
-
+		viewLineList2.clear();
 		//time.deltatime in unity i think
 		float timeSinceFrame = aiUpdateClock.getElapsedTime().asSeconds();
 		if (timeSinceFrame < aiInterval)
@@ -434,7 +445,7 @@ void aiUpdate()
 			}
 
 			std::list<livingEntity>& ent = it->second.fauna; //only simulate for fauna
-
+			
 			for (livingEntity& a : ent) {
 				simulate(a, it->second, timeSinceFrame);
 			}			
